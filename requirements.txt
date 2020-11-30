@@ -1,0 +1,11 @@
+torch
+transformers==3.4.0
+tensorboard>=1.15.0
+tdqm
+nltk
+spacy
+plotly
+sacrebleu
+performer-pytorch==0.9.2
+scikit-learn
+deepspeed
