@@ -73,9 +73,11 @@ class SiamesePerformer(nn.Module):
         embedding2 = self.get_embedding(x2["input_ids"], mask=x2["attention_mask"].bool())
 
         distance = self.cosine_similarity(embedding1, embedding2)
-        loss = self.loss_function(distance, target)
-
-        return loss
+        if target:
+            loss = self.loss_function(distance, target)
+            return loss
+        else:
+            return distance
 
 
 if __name__ == "__main__":
