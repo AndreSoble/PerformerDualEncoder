@@ -71,7 +71,7 @@ class AMSLoss(nn.Module):
         return torch.mul(-1 / N, torch.sum(ret))
 
     def forward(self, x: torch.FloatTensor, y: torch.FloatTensor):
-        return torch.add(self.rank(x, y), self.rank(y, x)).cpu()
+        return torch.add(self.rank(x, y), self.rank(y, x))
 
 
 class SiamesePerformer(nn.Module):
@@ -100,7 +100,7 @@ class SiamesePerformer(nn.Module):
         embedding1 = self.model(x1["input_ids"], mask=x1["attention_mask"].bool())
         embedding2 = self.get_embedding(x2["input_ids"], mask=x2["attention_mask"].bool())
 
-        return self.loss_function(embedding1, embedding2)
+        return self.loss_function(embedding1, embedding2).to("cpu")
 
 
 if __name__ == "__main__":
