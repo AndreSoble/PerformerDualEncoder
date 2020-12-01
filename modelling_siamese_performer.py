@@ -51,6 +51,7 @@ class AMSLoss:
         self.cosine_similarity = nn.CosineSimilarity()
 
     def rank(self, x: torch.FloatTensor, y: torch.FloatTensor):
+
         N = x.size()[0]
         ret = torch.empty(N)
         similarities = self.cosine_similarity(x, y)
@@ -70,6 +71,8 @@ class AMSLoss:
         return torch.mul(-1 / N, torch.sum(ret))
 
     def calculate_loss(self, x: torch.FloatTensor, y: torch.FloatTensor):
+        x.cpu()
+        y.cpu()
         return torch.add(self.rank(x, y), self.rank(y, x))
 
 
