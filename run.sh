@@ -1,3 +1,3 @@
-python setup.py
+python /workspace/setup.py
 deepspeed /workspace/training.py --deepspeed --deepspeed_config /workspace/ds_config.json
-python evaluate.py
+python /workspace/evaluate.py
