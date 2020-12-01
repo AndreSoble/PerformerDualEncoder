@@ -45,12 +45,8 @@ def data_collector_deepspeed(batch_of_sentences, _tokenizer, rank):
 
     source_batch = _tokenizer([s.get_source() for s in batch_of_sentences], add_special_tokens=True, padding=True,
                               return_tensors="pt")
-    source_batch["input_ids"].to(rank)
-    source_batch["attention_mask"].bool().to(rank)
     target_batch = _tokenizer([s.get_target() for s in batch_of_sentences], add_special_tokens=True, padding=True,
                               return_tensors="pt")
-    target_batch["input_ids"].to(rank)
-    target_batch["attention_mask"].bool().to(rank)
     return {
         "x1": {
             "input_ids": source_batch["input_ids"].to(rank),
