@@ -31,7 +31,7 @@ class PerformerForSiamese(nn.Module):
         for fast_attention in fast_attentions:
             fast_attention.set_projection_matrix(device)
 
-    def forward(self, x, return_encodings=False, **kwargs):
+    def forward(self, x, mask):
         b, n, device = *x.shape, x.device
         # token and positional embeddings
         x = self.token_emb(x)
@@ -39,13 +39,43 @@ class PerformerForSiamese(nn.Module):
         x = self.dropout(x)
 
         # performer layers
-        x = self.performer(x, **kwargs)[:, 0, :]
+        x = self.performer(x, mask = mask)  # [:, 0, :]
 
+        x = x.mean(1)
         return x
 
 
+class AMSLoss(nn.Module):
+    def __init__(self, m=0.3):
+        super().__init__()
+        self.margin = m
+        self.cosine_similarity = nn.CosineSimilarity()
+
+    def rank(self, x: torch.FloatTensor, y: torch.FloatTensor):
+        N = x.size()[0]
+        ret = torch.empty(N)
+        similarities = self.cosine_similarity(x, y)
+
+        for i in range(N):
+            xxx = torch.empty(N - 1)
+            negative_samples_similarities_exp = [self.cosine_similarity(x[i].unsqueeze(0), y[n].unsqueeze(0)) for n in
+                                                 range(N) if n != i]
+            for idx in range(N - 1):
+                xxx[idx] = negative_samples_similarities_exp[idx]
+            negative_samples_similarities_exp = torch.exp(xxx)
+            negative_samples_similarities_exp = torch.sum(negative_samples_similarities_exp)
+            m1 = torch.exp(torch.add(similarities[i], self.margin))
+            m2 = torch.exp(torch.add(similarities[i], self.margin))
+            ret[i] = torch.div(m1, torch.add(m2, negative_samples_similarities_exp))
+
+        return torch.mul(-1 / N, torch.sum(ret))
+
+    def forward(self, x: torch.FloatTensor, y: torch.FloatTensor):
+        return torch.add(self.rank(x, y), self.rank(y, x))
+
+
 class SiamesePerformer(nn.Module):
-    def __init__(self, num_tokens, max_seq_len, dim, depth, heads, local_attn_heads=0, local_window_size=256,
+    def __init__(self, num_tokens, max_seq_len=512, dim=512, depth=6, heads=8, local_attn_heads=0, local_window_size=256,
                  causal=False, ff_mult=4, nb_features=None, reversible=False, ff_chunks=1, ff_glu=False, emb_dropout=0.,
                  ff_dropout=0., attn_dropout=0., generalized_attention=False, kernel_fn=nn.ReLU(), qr_uniform_q=False,
                  use_scalenorm=False, use_rezero=False, cross_attend=False):
@@ -55,9 +85,7 @@ class SiamesePerformer(nn.Module):
                                          causal, ff_mult, nb_features, reversible, ff_chunks, ff_glu, emb_dropout,
                                          ff_dropout, attn_dropout, generalized_attention, kernel_fn, qr_uniform_q,
                                          use_scalenorm, use_rezero, cross_attend)
-
-        self.cosine_similarity = nn.CosineSimilarity()
-        self.loss_function = nn.BCELoss()
+        self.loss_function = AMSLoss()
 
     def fix_projection_matrix(self):
         self.model.fix_projection_matrices_()
@@ -68,24 +96,21 @@ class SiamesePerformer(nn.Module):
             mask = torch.ones_like(x).bool()
         return self.model(x, mask)
 
-    def forward(self, x1: LongTensor, x2: LongTensor, target: FloatTensor):
+    def forward(self, x1: LongTensor, x2: LongTensor):
         embedding1 = self.model(x1["input_ids"], mask=x1["attention_mask"].bool())
         embedding2 = self.get_embedding(x2["input_ids"], mask=x2["attention_mask"].bool())
 
-        distance = self.cosine_similarity(embedding1, embedding2)
-        if target:
-            loss = self.loss_function(distance, target)
-            return loss
-        else:
-            return distance
+        return self.loss_function(embedding1, embedding2)
 
 
 if __name__ == "__main__":
     tokenizer = RobertaTokenizer.from_pretrained("roberta-large")
     model = SiamesePerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
     optimizer = Adam(model.parameters())
-    sentence1_tensor = tokenizer("Ich bin Andre", add_special_tokens=True, return_tensors="pt")
-    sentence2_tensor = tokenizer("Ich bin Peter", add_special_tokens=True, return_tensors="pt")
-    loss = model(sentence1_tensor, sentence2_tensor, target=FloatTensor([1]))
+    sentence1_tensor = tokenizer(["Ich bin Andre", "Ich bin nicht Andre", "Ich bin ein Student"], add_special_tokens=True, return_tensors="pt",
+                                 padding=True)
+    sentence2_tensor = tokenizer(["Ich bin Peter", "Ich bin nicht Peter", "Ich bin kein Student"], add_special_tokens=True, return_tensors="pt",
+                                 padding=True)
+    loss = model(sentence1_tensor, sentence2_tensor)
     loss.backward()
     optimizer.step()
