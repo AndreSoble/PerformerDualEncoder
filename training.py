@@ -22,6 +22,7 @@ if __name__ == "__main__":
     corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG",0))),path=os.environ.get("DATA_DIR", "./storage"))
 
     tokenizer = RobertaTokenizer.from_pretrained(os.environ.get("PRETRAINED_VOCAB_PATH", "roberta-base"))
+    tokenizer.max_len = 1024
     auto_encoder = SiamesePerformer(tokenizer.vocab_size).cuda()
 
     train_dataset = DataLoaderLaper(corpus.get_train())
