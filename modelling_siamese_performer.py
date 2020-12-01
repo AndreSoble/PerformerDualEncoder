@@ -71,8 +71,6 @@ class AMSLoss:
         return torch.mul(-1 / N, torch.sum(ret))
 
     def calculate_loss(self, x: torch.FloatTensor, y: torch.FloatTensor):
-        x.cpu()
-        y.cpu()
         return torch.add(self.rank(x, y), self.rank(y, x))
 
 
