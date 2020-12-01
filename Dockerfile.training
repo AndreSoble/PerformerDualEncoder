@@ -9,4 +9,4 @@ ADD ./evaluation.py /workspace/evaluation.py
 ADD ./run.sh /workspace/run.sh
 WORKDIR /
 EXPOSE 6016
-ENTRYPOINT ["bash","run.sh"]
+ENTRYPOINT ["bash","/workspace/run.sh"]
