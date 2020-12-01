@@ -53,11 +53,11 @@ class AMSLoss:
     def rank(self, x: torch.FloatTensor, y: torch.FloatTensor):
 
         N = x.size()[0]
-        ret = torch.empty(N)
+        ret = torch.empty(N).to(x.device)
         similarities = self.cosine_similarity(x, y)
 
         for i in range(N):
-            xxx = torch.empty(N - 1)
+            xxx = torch.empty(N - 1).to(x.device)
             negative_samples_similarities_exp = [self.cosine_similarity(x[i].unsqueeze(0), y[n].unsqueeze(0)) for n in
                                                  range(N) if n != i]
             for idx in range(N - 1):
