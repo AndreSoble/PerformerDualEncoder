@@ -45,9 +45,8 @@ class PerformerForSiamese(nn.Module):
         return x
 
 
-class AMSLoss(nn.Module):
+class AMSLoss:
     def __init__(self, m=0.3):
-        super().__init__()
         self.margin = m
         self.cosine_similarity = nn.CosineSimilarity()
 
@@ -70,7 +69,7 @@ class AMSLoss(nn.Module):
 
         return torch.mul(-1 / N, torch.sum(ret))
 
-    def forward(self, x: torch.FloatTensor, y: torch.FloatTensor):
+    def calculate_loss(self, x: torch.FloatTensor, y: torch.FloatTensor):
         return torch.add(self.rank(x, y), self.rank(y, x))
 
 
@@ -85,7 +84,6 @@ class SiamesePerformer(nn.Module):
                                          causal, ff_mult, nb_features, reversible, ff_chunks, ff_glu, emb_dropout,
                                          ff_dropout, attn_dropout, generalized_attention, kernel_fn, qr_uniform_q,
                                          use_scalenorm, use_rezero, cross_attend)
-        self.loss_function = AMSLoss()
 
     def fix_projection_matrix(self):
         self.model.fix_projection_matrices_()
@@ -99,8 +97,8 @@ class SiamesePerformer(nn.Module):
     def forward(self, x1: LongTensor, x2: LongTensor):
         embedding1 = self.model(x1["input_ids"], mask=x1["attention_mask"].bool())
         embedding2 = self.get_embedding(x2["input_ids"], mask=x2["attention_mask"].bool())
-
-        return self.loss_function(embedding1, embedding2).to("cpu")
+        loss_function = AMSLoss()
+        return loss_function.calculate_loss(embedding1, embedding2)
 
 
 if __name__ == "__main__":

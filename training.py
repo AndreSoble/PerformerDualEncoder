@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     assert download_and_extract(path=os.environ.get("DATA_DIR", "./storage"))
     corpus = Corpus()
-    corpus.load_corpus(path=os.environ.get("DATA_DIR", "./storage"))
+    corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG",0))),path=os.environ.get("DATA_DIR", "./storage"))
 
     tokenizer = RobertaTokenizer.from_pretrained(os.environ.get("PRETRAINED_VOCAB_PATH", "roberta-base"))
     auto_encoder = SiamesePerformer(tokenizer.vocab_size).cuda()
