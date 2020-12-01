@@ -75,9 +75,9 @@ class AMSLoss:
 
 
 class SiamesePerformer(nn.Module):
-    def __init__(self, num_tokens, max_seq_len=2048, dim=512, depth=3, heads=4, local_attn_heads=4,
+    def __init__(self, num_tokens, max_seq_len=2048, dim=512, depth=3, heads=8, local_attn_heads=4,
                  local_window_size=256,
-                 causal=False, ff_mult=4, nb_features=None, reversible=True, ff_chunks=10, ff_glu=False,
+                 causal=False, ff_mult=4, nb_features=256, reversible=True, ff_chunks=10, ff_glu=False,
                  emb_dropout=0.1,
                  ff_dropout=0.1, attn_dropout=0.1, generalized_attention=False, kernel_fn=nn.ReLU(), qr_uniform_q=False,
                  use_scalenorm=False, use_rezero=False, cross_attend=False):
