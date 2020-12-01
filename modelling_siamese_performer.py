@@ -71,7 +71,7 @@ class AMSLoss(nn.Module):
         return torch.mul(-1 / N, torch.sum(ret))
 
     def forward(self, x: torch.FloatTensor, y: torch.FloatTensor):
-        return torch.add(self.rank(x, y), self.rank(y, x))
+        return torch.add(self.rank(x, y), self.rank(y, x)).cpu()
 
 
 class SiamesePerformer(nn.Module):
