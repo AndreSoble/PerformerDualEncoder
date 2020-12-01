@@ -47,7 +47,7 @@ if __name__ == "__main__":
             if model_engine.local_rank != 0:
                 continue
 
-            if (i * epoch + i) % int(os.environ.get("STEPS")) == 0:
+            if (i * epoch + i) % int(os.environ.get("STEPS_PER_PRINT")) == 0:
                 model_engine.save_checkpoint(os.environ.get("OUTPUT_DIR"), (i * epoch + i))
 
     if model_engine.local_rank == 0:
