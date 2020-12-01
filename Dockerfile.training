@@ -1,1 +1,10 @@
 FROM performer_base
+ADD ./modelling_siamese_performer.py /workspace/modelling_siamese_performer.py
+ADD ./preprocessing.py /workspace/preprocessing.py
+ADD ./utils.py /workspace/utils.py
+ADD ./training.py /workspace/training.py
+ADD ./evaluation.py /workspace/evaluation.py
+ADD ./run.sh /workspace/run.sh
+WORKDIR /
+EXPOSE 6016
+ENTRYPOINT ["bash","run.sh"]
