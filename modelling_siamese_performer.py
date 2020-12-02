@@ -87,27 +87,19 @@ class SiamesePerformer(nn.Module):
                                          causal, ff_mult, nb_features, reversible, ff_chunks, ff_glu, emb_dropout,
                                          ff_dropout, attn_dropout, generalized_attention, kernel_fn, qr_uniform_q,
                                          use_scalenorm, use_rezero, cross_attend)
-        self.siamese = PerformerForSiamese(num_tokens, max_seq_len, dim, depth, heads, local_attn_heads,
-                                           local_window_size,
-                                           causal, ff_mult, nb_features, reversible, ff_chunks, ff_glu, emb_dropout,
-                                           ff_dropout, attn_dropout, generalized_attention, kernel_fn, qr_uniform_q,
-                                           use_scalenorm, use_rezero, cross_attend).cpu()
-        self.siamese.load_state_dict(self.model.state_dict())
 
     def fix_projection_matrix(self):
         self.model.fix_projection_matrices_()
 
     @torch.no_grad()
     def get_embedding(self, x, mask=None):
-        self.siamese.cpu()
-        self.siamese.load_state_dict(self.model.state_dict())
         if mask is None:
-            mask = torch.ones_like(x).bool().cpu()
-        return self.siamese(x.cpu(), mask.cpu())
+            mask = torch.ones_like(x).bool()
+        return self.model(x, mask)
 
     def forward(self, x1: LongTensor, x2: LongTensor):
         embedding1 = self.model(x1["input_ids"], mask=x1["attention_mask"].bool())
-        embedding2 = self.get_embedding(x2["input_ids"], mask=x2["attention_mask"].bool()).to(embedding1.device)
+        embedding2 = self.get_embedding(x2["input_ids"], mask=x2["attention_mask"].bool())
         loss_function = AMSLoss()
         return loss_function.calculate_loss(embedding1, embedding2)
 
