@@ -53,7 +53,7 @@ def data_collector_deepspeed(batch_of_sentences, _tokenizer, rank):
             "attention_mask": source_batch["attention_mask"].to(rank)
         },
         "x2": {
-            "input_ids": target_batch["input_ids"].to(rank),
-            "attention_mask": target_batch["attention_mask"].to(rank)
+            "input_ids": target_batch["input_ids"].detach().to(rank),
+            "attention_mask": target_batch["attention_mask"].detach().to(rank)
         },
     }
