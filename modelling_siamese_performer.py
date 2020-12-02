@@ -98,10 +98,9 @@ class SiamesePerformer(nn.Module):
         return self.model(x, mask)
 
     def forward(self, x1: LongTensor, x2: LongTensor):
+        embedding2 = self.get_embedding(x2["input_ids"], mask=x2["attention_mask"].bool())
+        del x2
         embedding1 = self.model(x1["input_ids"], mask=x1["attention_mask"].bool())
-        with torch.no_grad():
-            embedding2 = self.get_embedding(x2["input_ids"].detach(), mask=x2["attention_mask"].detach().bool())
-            del x2
         loss_function = AMSLoss()
         return loss_function.calculate_loss(embedding1, embedding2)
 
