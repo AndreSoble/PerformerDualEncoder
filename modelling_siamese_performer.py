@@ -46,7 +46,7 @@ class PerformerForSiamese(nn.Module):
 
 
 class AMSLoss:
-    def __init__(self, m=0.3):
+    def __init__(self, m=0.1):
         self.margin = m
         self.cosine_similarity = nn.CosineSimilarity()
 
