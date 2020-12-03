@@ -41,8 +41,6 @@ if __name__ == "__main__":
             data = data_collector_deepspeed(data, tokenizer, model_engine.local_rank)
             loss = model_engine(**data)
             loss = loss.mean()
-            loss = torch.div(loss,
-                             int(os.environ.get("GRADIENT_ACCUMULATION_STEPS", 100)))  # gradient_accumulation_steps
             model_engine.backward(loss)
             model_engine.step()
             if model_engine.local_rank != 0:
