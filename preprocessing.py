@@ -5,6 +5,7 @@ import tarfile
 import traceback
 from concurrent.futures.thread import ThreadPoolExecutor
 from pprint import pprint
+from random import shuffle
 
 import requests
 from tqdm import tqdm
@@ -71,7 +72,9 @@ class Corpus:
     def get_dev(self):
         return self.dev
 
-    def get_train(self):
+    def get_train(self, shuffled=False):
+        if shuffled:
+            shuffle(self.train)
         return self.train
 
     def get_source_target_filename(self, f1, f2):
@@ -182,7 +185,7 @@ class Corpus:
 
 
 if __name__ == "__main__":
-    #assert download_and_extract(path=os.environ.get("DATA", "/mnt/mlag/andre_soblechero/storage"))
+    # assert download_and_extract(path=os.environ.get("DATA", "/mnt/mlag/andre_soblechero/storage"))
     corpus = Corpus()
     corpus.get_stats("/mnt/d/backup/IdeaProjects/Transformer Autoencoder/storage")
-    #corpus.load_corpus(debug=False, path=os.environ.get("DATA_DIR", "./storage"))
+    # corpus.load_corpus(debug=False, path=os.environ.get("DATA_DIR", "./storage"))

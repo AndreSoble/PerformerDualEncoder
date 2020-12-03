@@ -20,12 +20,13 @@ if __name__ == "__main__":
 
     assert download_and_extract(path=os.environ.get("DATA_DIR", "./storage"))
     corpus = Corpus()
-    corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG",0))),path=os.environ.get("DATA_DIR", "./storage"))
+    corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG", 0))), path=os.environ.get("DATA_DIR", "./storage"))
 
     tokenizer = RobertaTokenizer.from_pretrained(os.environ.get("PRETRAINED_VOCAB_PATH", "roberta-base"))
     auto_encoder = SiamesePerformer(tokenizer.vocab_size).cuda()
 
-    train_dataset = DataLoaderLaper(corpus.get_train())
+    train_dataset = DataLoaderLaper(
+        corpus.get_train() if not bool(int(os.environ.get("DOWNSAMPLE", 0))) else corpus.get_train()[0:100])
 
     cmd_args = add_argument()
     model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=auto_encoder,
@@ -47,6 +48,8 @@ if __name__ == "__main__":
                 continue
 
             if (i * epoch + i) % int(os.environ.get("STEPS_PER_PRINT")) == 0:
+                batches = []
+
                 print(f"{datetime.now()} Epoch {epoch} iter {i} Loss {loss.item()}")
                 model_engine.save_checkpoint(os.environ.get("OUTPUT_DIR"), (i * epoch + i))
 
