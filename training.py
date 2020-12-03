@@ -26,7 +26,7 @@ if __name__ == "__main__":
     auto_encoder = SiamesePerformer(tokenizer.vocab_size).cuda()
 
     train_dataset = DataLoaderLaper(
-        corpus.get_train() if not bool(int(os.environ.get("DOWNSAMPLE", 0))) else corpus.get_train()[0:100])
+        corpus.get_train() if not bool(int(os.environ.get("DOWNSAMPLE", 0))) else corpus.get_train()[0:1000])
 
     cmd_args = add_argument()
     model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=auto_encoder,
@@ -54,5 +54,5 @@ if __name__ == "__main__":
                 model_engine.save_checkpoint(os.environ.get("OUTPUT_DIR"), (i * epoch + i))
 
     if model_engine.local_rank == 0:
-        auto_encoder.fix_projections()
+        auto_encoder.fix_projection_matrix()
         auto_encoder.save_pretrained(os.environ.get("OUTPUT_DIR") + "/final_performer.bin")
