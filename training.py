@@ -1,5 +1,6 @@
 import os
 import warnings
+from datetime import time, datetime
 
 import deepspeed
 import torch
@@ -33,7 +34,7 @@ if __name__ == "__main__":
 
     for epoch in range(int(os.environ.get("EPOCHS", 1))):
         if model_engine.local_rank == 0:
-            print(f"Epoch {epoch}")
+            print(f"{datetime.now()} Epoch {epoch}")
 
         for i, data in enumerate(trainloader):
             model_engine.train()
@@ -48,6 +49,7 @@ if __name__ == "__main__":
                 continue
 
             if (i * epoch + i) % int(os.environ.get("STEPS_PER_PRINT")) == 0:
+                print(f"{datetime.now()} Epoch {epoch} iter {i} Loss {loss.item()}")
                 model_engine.save_checkpoint(os.environ.get("OUTPUT_DIR"), (i * epoch + i))
 
     if model_engine.local_rank == 0:
