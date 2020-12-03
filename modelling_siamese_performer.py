@@ -64,8 +64,8 @@ class AMSLoss:
                 xxx[idx] = negative_samples_similarities_exp[idx]
             negative_samples_similarities_exp = torch.exp(xxx)
             negative_samples_similarities_exp = torch.sum(negative_samples_similarities_exp)
-            m1 = torch.exp(torch.add(similarities[i], self.margin))
-            m2 = torch.exp(torch.add(similarities[i], self.margin))
+            m1 = torch.exp(torch.sub(similarities[i], self.margin))
+            m2 = torch.exp(torch.sub(similarities[i], self.margin))
             ret[i] = torch.div(m1, torch.add(m2, negative_samples_similarities_exp))
 
         return torch.mul(-1 / N, torch.sum(ret))
