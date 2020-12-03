@@ -46,7 +46,7 @@ class PerformerForSiamese(nn.Module):
 
 
 class AMSLoss:
-    def __init__(self, m=0.3):
+    def __init__(self, m=0.1):
         self.margin = m
         self.cosine_similarity = nn.CosineSimilarity()
 
@@ -68,7 +68,7 @@ class AMSLoss:
             m2 = torch.exp(torch.sub(similarities[i], self.margin))
             ret[i] = torch.div(m1, torch.add(m2, negative_samples_similarities_exp))
 
-        return torch.mul(1 / N, torch.sum(ret))
+        return torch.mul(1 / N, torch.log(torch.sum(ret) + 1))
 
     def calculate_loss(self, x: torch.FloatTensor, y: torch.FloatTensor):
         return torch.add(self.rank(x, y), self.rank(y, x))
