@@ -1,5 +1,5 @@
 FROM performer_base
-ADD modelling_dual_encoder_performer.py /workspace/modelling_siamese_performer.py
+ADD ./modelling_dual_encoder_performer.py /workspace/modelling_dual_encoder_performer.py
 ADD ./preprocessing.py /workspace/preprocessing.py
 ADD ./utils.py /workspace/utils.py
 ADD ./ds_config.json /workspace/ds_config.json

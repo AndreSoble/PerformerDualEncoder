@@ -159,3 +159,4 @@ if __name__ == "__main__":
         loss.backward()
         optimizer.step()
         print(model.get_similarity(sentence1_test, sentence2_test))
+
