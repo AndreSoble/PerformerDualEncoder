@@ -63,7 +63,7 @@ if __name__ == "__main__":
                 model_engine.save_checkpoint(os.environ.get("OUTPUT_DIR"), (i * epoch + i))
         if model_engine.local_rank != 0:
             continue
-        print(f"{datetime.now()} Epoch {epoch} final epoch Loss {sum(losses) / len(losses)}")
+        print(f"{datetime.now()} Epoch {epoch} final epoch Loss {sum(losses) / len(losses)} on rank 0")
     if model_engine.local_rank == 0:
         auto_encoder.fix_projection_matrix()
         auto_encoder.save_pretrained(os.environ.get("OUTPUT_DIR") + "/final_performer.bin")
