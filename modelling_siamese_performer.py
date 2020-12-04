@@ -1,6 +1,8 @@
 import torch
 from performer_pytorch.performer_pytorch import cast_tuple, find_modules, FastAttention, get_module_device, Performer
 from torch import nn, LongTensor, FloatTensor
+from torch.nn import CrossEntropyLoss
+from torch.nn.modules.loss import _WeightedLoss
 from torch.optim import Adam
 from transformers import RobertaTokenizer
 
@@ -45,8 +47,9 @@ class PerformerForSiamese(nn.Module):
         return x
 
 
-class AMSLoss:
+class AMSLoss(_WeightedLoss):
     def __init__(self, m=0.1):
+        super(AMSLoss, self).__init__()
         self.margin = m
         self.cosine_similarity = nn.CosineSimilarity()
 
@@ -66,11 +69,11 @@ class AMSLoss:
             negative_samples_similarities_exp = torch.sum(negative_samples_similarities_exp)
             m1 = torch.exp(torch.sub(similarities[i], self.margin))
             m2 = torch.exp(torch.sub(similarities[i], self.margin))
-            ret[i] = torch.div(m1, torch.add(m2, negative_samples_similarities_exp))
+            ret[i] = torch.mul(-1, torch.log(torch.div(m1, torch.add(m2, negative_samples_similarities_exp))))
 
         return torch.mul(1 / N, torch.sum(ret))
 
-    def calculate_loss(self, x: torch.FloatTensor, y: torch.FloatTensor):
+    def forward(self, x: torch.FloatTensor, y: torch.FloatTensor):
         return torch.add(self.rank(x, y), self.rank(y, x))
 
 
@@ -82,6 +85,7 @@ class SiamesePerformer(nn.Module):
                  ff_dropout=0.1, attn_dropout=0.1, generalized_attention=False, kernel_fn=nn.ReLU(), qr_uniform_q=False,
                  use_scalenorm=False, use_rezero=False, cross_attend=False):
         super().__init__()
+        self.vocab_size = num_tokens
         self.model = PerformerForSiamese(num_tokens, max_seq_len, dim, depth, heads, local_attn_heads,
                                          local_window_size,
                                          causal, ff_mult, nb_features, reversible, ff_chunks, ff_glu, emb_dropout,
@@ -101,7 +105,17 @@ class SiamesePerformer(nn.Module):
         embedding1 = self.model(x1["input_ids"], mask=x1["attention_mask"].bool())
         embedding2 = self.get_embedding(x2["input_ids"], mask=x2["attention_mask"].bool())
         loss_function = AMSLoss()
-        return loss_function.calculate_loss(embedding1, embedding2)
+        return loss_function(embedding1, embedding2)
+
+    def save_pretrained(self, path):
+        torch.save({"vocab_size": self.vocab_size,
+                    "states": self.state_dict()}, path)
+
+    @staticmethod
+    def from_pretrained(path):
+        si = torch.load(path)
+        cls = SiamesePerformer(si["vocab_size"])
+        cls.load_state_dict(si["states"])
 
 
 if __name__ == "__main__":
