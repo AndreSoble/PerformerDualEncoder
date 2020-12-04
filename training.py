@@ -48,7 +48,7 @@ if __name__ == "__main__":
             if model_engine.local_rank != 0:
                 continue
 
-            if (i * epoch + i) % int(os.environ.get("STEPS_PER_PRINT")) == 0:
+            if (i * epoch + i) % int(os.environ.get("STEPS_PER_PRINT")) == 0 or i == (len(trainloader)-1):
                 #with torch.no_grad():
                 #    batches = [train_dataset[i:(i + 32)] for i in range(0, len(train_dataset), 32)]
                 #    losses = list()
@@ -61,6 +61,7 @@ if __name__ == "__main__":
                 #        losses.append(loss.item())
                 print(f"{datetime.now()} Epoch {epoch} iter {i} Loss {sum(losses) / len(losses)}")
                 model_engine.save_checkpoint(os.environ.get("OUTPUT_DIR"), (i * epoch + i))
+
         print(f"{datetime.now()} Epoch {epoch} final epoch Loss {sum(losses) / len(losses)}")
     if model_engine.local_rank == 0:
         auto_encoder.fix_projection_matrix()
