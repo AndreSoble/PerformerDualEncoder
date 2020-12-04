@@ -2,8 +2,8 @@ import torch
 from performer_pytorch.performer_pytorch import cast_tuple, find_modules, FastAttention, get_module_device, Performer
 from torch import nn, LongTensor, FloatTensor
 from torch.nn import CrossEntropyLoss
-from torch.nn.modules.loss import _WeightedLoss
-from torch.optim import Adam
+from torch.nn.modules.loss import _WeightedLoss, _Loss
+from torch.optim import Adam, SGD
 from transformers import RobertaTokenizer
 
 
@@ -27,6 +27,8 @@ class PerformerForSiamese(nn.Module):
                                    reversible, ff_chunks, generalized_attention, kernel_fn, qr_uniform_q, use_scalenorm,
                                    use_rezero, ff_glu, ff_dropout, attn_dropout, cross_attend)
 
+        self.activation = torch.nn.Softsign()
+
     def fix_projection_matrices_(self):
         fast_attentions = find_modules(self, FastAttention)
         device = get_module_device(self)
@@ -43,17 +45,20 @@ class PerformerForSiamese(nn.Module):
         # performer layers
         x = self.performer(x, mask=mask)  # [:, 0, :]
 
+        x = self.activation(x)
+
         x = x.mean(1)
+
         return x
 
 
-class AMSLoss(_WeightedLoss):
-    def __init__(self, m=0.1):
+class AMSLoss(_Loss):
+    def __init__(self, m=0.2):
         super(AMSLoss, self).__init__()
         self.margin = m
         self.cosine_similarity = nn.CosineSimilarity()
 
-    def rank(self, x: torch.FloatTensor, y: torch.FloatTensor):
+    def rank(self, x: torch.FloatTensor, y: torch.FloatTensor, reverse = False):
 
         N = x.size()[0]
         ret = torch.empty(N).to(x.device)
@@ -69,16 +74,19 @@ class AMSLoss(_WeightedLoss):
             negative_samples_similarities_exp = torch.sum(negative_samples_similarities_exp)
             m1 = torch.exp(torch.sub(similarities[i], self.margin))
             m2 = torch.exp(torch.sub(similarities[i], self.margin))
-            ret[i] = torch.mul(-1, torch.log(torch.div(m1, torch.add(m2, negative_samples_similarities_exp))))
+            if not reverse:
+                ret[i] = torch.log(torch.div(m1, torch.add(m2, negative_samples_similarities_exp)))
+            else:
+                ret[i] = torch.div(m1, torch.add(m2, negative_samples_similarities_exp))
 
-        return torch.mul(1 / N, torch.sum(ret))
+        return torch.mul(-1 / N, torch.sum(ret))
 
     def forward(self, x: torch.FloatTensor, y: torch.FloatTensor):
-        return torch.add(self.rank(x, y), self.rank(y, x))
+        return torch.add(self.rank(x, y), self.rank(y, x, reverse = True)) #self.rank(x, y)#
 
 
 class SiamesePerformer(nn.Module):
-    def __init__(self, num_tokens, max_seq_len=2048, dim=512, depth=6, heads=4, local_attn_heads=0,
+    def __init__(self, num_tokens, max_seq_len=2048, dim=512, depth=6, heads=8, local_attn_heads=0,
                  local_window_size=256,
                  causal=False, ff_mult=4, nb_features=None, reversible=False, ff_chunks=10, ff_glu=False,
                  emb_dropout=0.1,
@@ -119,13 +127,14 @@ class SiamesePerformer(nn.Module):
 
 
 if __name__ == "__main__":
+    from fastai.optimizer import Lamb
     tokenizer = RobertaTokenizer.from_pretrained("roberta-large")
     model = SiamesePerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
-    optimizer = Adam(model.parameters(), lr=0.005) #Lamb
-    sentence1_tensor = tokenizer(["Ich bin Andre", "Ich bin nicht Andre", "Ich bin ein Student"],
+    optimizer = Lamb(model.parameters(), lr=0.0001)  # Lamb
+    sentence1_tensor = tokenizer(["Ich bin Andre", "Ich brauche hilfe", "Du magst tanzen?"],
                                  add_special_tokens=True, return_tensors="pt",
                                  padding=True)
-    sentence2_tensor = tokenizer(["Ich bin Peter", "Ich bin nicht Peter", "Ich bin kein Student"],
+    sentence2_tensor = tokenizer(["I am Andre", "I need support", "do you like dancing?"],
                                  add_special_tokens=True, return_tensors="pt",
                                  padding=True)
     for _ in range(200):
