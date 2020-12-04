@@ -53,7 +53,7 @@ class PerformerForSiamese(nn.Module):
 
 
 class AMSLoss(_Loss):
-    def __init__(self, m=0.5):
+    def __init__(self, m=0.3):
         super(AMSLoss, self).__init__()
         self.margin = m
         self.cosine_similarity = nn.CosineSimilarity()
@@ -111,7 +111,7 @@ class SiamesePerformer(nn.Module):
 
     def forward(self, x1: dict, x2: dict):
         embedding1 = self.model(x1["input_ids"], mask=x1["attention_mask"].bool())
-        embedding2 = self.get_embedding(x2["input_ids"], mask=x2["attention_mask"].bool())
+        embedding2 = self.model(x2["input_ids"], mask=x2["attention_mask"].bool())
         loss_function = AMSLoss()
         return loss_function(embedding1, embedding2)
 

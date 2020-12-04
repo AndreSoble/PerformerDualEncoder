@@ -4,6 +4,7 @@ from typing import List
 
 import deepspeed
 from torch.utils.data import Dataset
+from transformers import RobertaTokenizer
 
 from preprocessing import SentencePair
 
@@ -54,11 +55,37 @@ def data_collector_deepspeed(batch_of_sentences, _tokenizer, rank):
 
     return {
         "x1": {
-            "input_ids": source_batch["input_ids"].to(rank),
-            "attention_mask": source_batch["attention_mask"].to(rank)
+            "input_ids": src_in,
+            "attention_mask": src_attn
         },
         "x2": {
-            "input_ids": target_batch["input_ids"].detach().to(rank),
-            "attention_mask": target_batch["attention_mask"].detach().to(rank)
+            "input_ids": tgt_in,
+            "attention_mask": tgt_attn
+        },
+    }
+
+tokenizer = RobertaTokenizer.from_pretrained("roberta-large")
+def data_collector_huggingface(batch_of_sentences):
+    global tokenizer, rank
+    batch_of_sentences = [SentencePair(batch_of_sentences[h]["source"], batch_of_sentences[h]["target"]) for h in
+                          range(len(batch_of_sentences))]
+
+    source_batch = tokenizer([s.get_source() for s in batch_of_sentences], add_special_tokens=True, padding=True,
+                              return_tensors="pt")
+    target_batch = tokenizer([s.get_target() for s in batch_of_sentences], add_special_tokens=True, padding=True,
+                              return_tensors="pt")
+    src_in = source_batch["input_ids"].transpose(0, 1)[0:512].transpose(0, 1),
+    src_attn = source_batch["attention_mask"].transpose(0, 1)[0:512].transpose(0, 1)
+    tgt_in = target_batch["input_ids"].transpose(0, 1)[0:512].transpose(0, 1),
+    tgt_attn = target_batch["attention_mask"].transpose(0, 1)[0:512].transpose(0, 1)
+
+    return {
+        "x1": {
+            "input_ids": src_in[0],
+            "attention_mask": src_attn
+        },
+        "x2": {
+            "input_ids": tgt_in[0],
+            "attention_mask": tgt_attn
         },
     }
