@@ -6,7 +6,7 @@ import deepspeed
 import torch
 from transformers import RobertaTokenizer
 
-from modelling_siamese_performer import SiamesePerformer
+from modelling_dual_encoder_performer import DualEncoderPerformer
 from preprocessing import Corpus, download_and_extract
 from utils import DataLoaderLaper, add_argument, data_collector_deepspeed
 
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     train_dataset = DataLoaderLaper(
         corpus.get_train() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train()[0:10000])
 
-    auto_encoder = SiamesePerformer(tokenizer.vocab_size).cuda()
+    auto_encoder = DualEncoderPerformer(tokenizer.vocab_size).cuda()
 
     cmd_args = add_argument()
     model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=auto_encoder,

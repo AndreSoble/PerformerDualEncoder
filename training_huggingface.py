@@ -6,7 +6,7 @@ from transformers.trainer import Trainer
 from transformers.trainer import TrainingArguments
 from transformers.trainer_utils import EvaluationStrategy
 
-from modelling_siamese_performer import SiamesePerformer
+from modelling_dual_encoder_performer import DualEncoderPerformer
 from preprocessing import download_and_extract, Corpus
 from utils import DataLoaderLaper, data_collector_huggingface
 
@@ -24,7 +24,7 @@ train_dataset = DataLoaderLaper(
 test_dataset = DataLoaderLaper(
     corpus.get_dev() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_dev()[0:5000])
 
-auto_encoder = SiamesePerformer(tokenizer.vocab_size)
+auto_encoder = DualEncoderPerformer(tokenizer.vocab_size)
 
 training_args = TrainingArguments(
     output_dir="./results",  # output directory

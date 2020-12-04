@@ -7,7 +7,7 @@ from torch.optim import Adam, SGD
 from transformers import RobertaTokenizer
 
 
-class PerformerForSiamese(nn.Module):
+class PerformerForDualEncoder(nn.Module):
     def __init__(self, num_tokens, max_seq_len, dim, depth, heads, local_attn_heads=0, local_window_size=256,
                  causal=False, ff_mult=4, nb_features=None, reversible=False, ff_chunks=1, ff_glu=False, emb_dropout=0.,
                  ff_dropout=0., attn_dropout=0., generalized_attention=False, kernel_fn=nn.ReLU(), qr_uniform_q=False,
@@ -85,7 +85,7 @@ class AMSLoss(_Loss):
         return torch.add(self.rank(x, y), self.rank(y, x, reverse=True))  # self.rank(x, y)#
 
 
-class SiamesePerformer(nn.Module):
+class DualEncoderPerformer(nn.Module):
     def __init__(self, num_tokens, max_seq_len=2048, dim=512, depth=6, heads=8, local_attn_heads=0,
                  local_window_size=256,
                  causal=False, ff_mult=4, nb_features=None, reversible=False, ff_chunks=10, ff_glu=False,
@@ -94,11 +94,11 @@ class SiamesePerformer(nn.Module):
                  use_scalenorm=False, use_rezero=False, cross_attend=False):
         super().__init__()
         self.vocab_size = num_tokens
-        self.model = PerformerForSiamese(num_tokens, max_seq_len, dim, depth, heads, local_attn_heads,
-                                         local_window_size,
-                                         causal, ff_mult, nb_features, reversible, ff_chunks, ff_glu, emb_dropout,
-                                         ff_dropout, attn_dropout, generalized_attention, kernel_fn, qr_uniform_q,
-                                         use_scalenorm, use_rezero, cross_attend)
+        self.model = PerformerForDualEncoder(num_tokens, max_seq_len, dim, depth, heads, local_attn_heads,
+                                             local_window_size,
+                                             causal, ff_mult, nb_features, reversible, ff_chunks, ff_glu, emb_dropout,
+                                             ff_dropout, attn_dropout, generalized_attention, kernel_fn, qr_uniform_q,
+                                             use_scalenorm, use_rezero, cross_attend)
 
     def fix_projection_matrix(self):
         self.model.fix_projection_matrices_()
@@ -129,7 +129,7 @@ class SiamesePerformer(nn.Module):
     @staticmethod
     def from_pretrained(path):
         si = torch.load(path)
-        cls = SiamesePerformer(si["vocab_size"])
+        cls = DualEncoderPerformer(si["vocab_size"])
         cls.load_state_dict(si["states"])
 
 
@@ -137,7 +137,7 @@ if __name__ == "__main__":
     from fastai.optimizer import Lamb
 
     tokenizer = RobertaTokenizer.from_pretrained("roberta-large")
-    model = SiamesePerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
+    model = DualEncoderPerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
     optimizer = Lamb(model.parameters(), lr=0.0001)  # Lamb
     sentence1_tensor = tokenizer(["Ich bin Andre", "Ich brauche hilfe", "Du magst tanzen?"],
                                  add_special_tokens=True, return_tensors="pt",
