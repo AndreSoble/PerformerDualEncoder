@@ -17,19 +17,19 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 if __name__ == "__main__":
 
     print("Loading data...")
+    tokenizer = RobertaTokenizer.from_pretrained("roberta-large")
 
     assert download_and_extract(path=os.environ.get("DATA_DIR", "./storage"))
     corpus = Corpus()
-    corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG", 0))), path=os.environ.get("DATA_DIR", "./storage"))
-
-    tokenizer = RobertaTokenizer.from_pretrained(os.environ.get("PRETRAINED_VOCAB_PATH", "roberta-base"))
-    auto_encoder = SiamesePerformer(tokenizer.vocab_size).cuda()
+    corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG", 1))), path=os.environ.get("DATA_DIR", "./storage"))
 
     train_dataset = DataLoaderLaper(
-        corpus.get_train() if not bool(int(os.environ.get("DOWNSAMPLE", 0))) else corpus.get_train()[0:5000])
+        corpus.get_train() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train()[0:5000])
 
     dev_dataset = DataLoaderLaper(
-        corpus.get_dev() if not bool(int(os.environ.get("DOWNSAMPLE", 0))) else corpus.get_train()[0:1000])
+        corpus.get_dev() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train()[0:1000])
+
+    auto_encoder = SiamesePerformer(tokenizer.vocab_size).cuda()
 
     cmd_args = add_argument()
     model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=auto_encoder,
@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
             if (i * epoch + i) % int(os.environ.get("STEPS_PER_PRINT")) == 0:
                 with torch.no_grad():
-                    batches = [dev_dataset[i:(i+32)] for i in range(0,len(dev_dataset), 32)]
+                    batches = [dev_dataset[i:(i + 32)] for i in range(0, len(dev_dataset), 32)]
                     losses = list()
                     for batch in batches:
                         bs_input = dict()
@@ -61,7 +61,7 @@ if __name__ == "__main__":
                         bs_input = data_collector_deepspeed(bs_input, tokenizer, model_engine.local_rank)
                         loss = auto_encoder(**bs_input)
                         losses.append(loss.item())
-                print(f"{datetime.now()} Epoch {epoch} iter {i} Loss {sum(losses)/len(losses)}")
+                print(f"{datetime.now()} Epoch {epoch} iter {i} Loss {sum(losses) / len(losses)}")
                 model_engine.save_checkpoint(os.environ.get("OUTPUT_DIR"), (i * epoch + i))
 
     if model_engine.local_rank == 0:
