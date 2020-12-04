@@ -1,6 +1,11 @@
 # PerformerDualEncoder
 In this paper a train funtion will be implemented which will be used to train a performer for language agnostic representations.
 
+### Install dependencies
+```
+pip install -r requirements.txt
+```
+
 ### Usage (A pretrained model has not been released yet but will be in the future)
 ```python
 from transformers import RobertaTokenizer
@@ -8,13 +13,17 @@ from modelling_dual_encoder_performer import DualEncoderPerformer
 
 tokenizer = RobertaTokenizer.from_pretrained("roberta-large")
 model = DualEncoderPerformer(num_tokens=tokenizer.vocab_size)
-sentence1 = tokenizer(["Ich bin Andre", "Ich bin Andre"],
+sentences1 = tokenizer(["Ich bin Andre", "Ich bin Andre"],
                       add_special_tokens=True, return_tensors="pt",
                       padding=True)
-sentence2 = tokenizer(["I am Andre", "I need support"],
+sentences2 = tokenizer(["I am Andre", "I need support"],
                            add_special_tokens=True, return_tensors="pt",
                            padding=True)
-print(model.get_similarity(sentence1, sentence2))
+print(model.get_similarity(sentences1, sentences2))
+```
+This code should output something like the following:
+```
+tensor([0.6409, 0.4435])
 ```
 
 ### Training
