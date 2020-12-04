@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
             if (i * epoch + i) % int(os.environ.get("STEPS_PER_PRINT")) == 0:
                 with torch.no_grad():
-                    batches = [dev_dataset[i:(i+len(dev_dataset))] for i in range(0,len(dev_dataset), 32)]
+                    batches = [dev_dataset[i:(i+32)] for i in range(0,len(dev_dataset), 32)]
                     losses = list()
                     for batch in batches:
                         bs_input = dict()
