@@ -3,11 +3,11 @@
   "train_micro_batch_size_per_gpu": 20,
   "gradient_accumulation_steps": 100,
   "steps_per_print": 100,
-  "max_grad_norm": 1,
+  "max_grad_norm": 0.5,
   "optimizer": {
     "type": "Lamb",
     "params": {
-      "lr": 0.001,
+      "lr": 0.0001,
       "betas": [
         0.99,
         0.999
@@ -19,8 +19,8 @@
     "type": "WarmupLR",
     "params": {
       "warmup_min_lr": 0,
-      "warmup_max_lr": 0.001,
-      "warmup_num_steps": 5
+      "warmup_max_lr": 0.0001,
+      "warmup_num_steps": 0
     }
   },
   "wall_clock_breakdown": false
