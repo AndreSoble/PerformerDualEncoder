@@ -53,7 +53,7 @@ class PerformerForSiamese(nn.Module):
 
 
 class AMSLoss(_Loss):
-    def __init__(self, m=0.5):
+    def __init__(self, m=0.3):
         super(AMSLoss, self).__init__()
         self.margin = m
         self.cosine_similarity = nn.CosineSimilarity()
