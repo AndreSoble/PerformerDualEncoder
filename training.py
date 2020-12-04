@@ -28,6 +28,9 @@ if __name__ == "__main__":
     train_dataset = DataLoaderLaper(
         corpus.get_train() if not bool(int(os.environ.get("DOWNSAMPLE", 0))) else corpus.get_train()[0:1000])
 
+    dev_dataset = DataLoaderLaper(
+        corpus.get_dev() if not bool(int(os.environ.get("DOWNSAMPLE", 0))) else corpus.get_train()[0:5000])
+
     cmd_args = add_argument()
     model_engine, optimizer, trainloader, _ = deepspeed.initialize(args=cmd_args, model=auto_encoder,
                                                                    model_parameters=auto_encoder.parameters(),
@@ -48,7 +51,7 @@ if __name__ == "__main__":
                 continue
 
             if (i * epoch + i) % int(os.environ.get("STEPS_PER_PRINT")) == 0:
-                batches = []
+                #batches = [dev_dataset[]]
 
                 print(f"{datetime.now()} Epoch {epoch} iter {i} Loss {loss.item()}")
                 model_engine.save_checkpoint(os.environ.get("OUTPUT_DIR"), (i * epoch + i))
