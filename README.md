@@ -39,3 +39,4 @@ docker run -d --cpuset-cpus="0-17" --runtime=nvidia -it -p 6016:6016 -v /path/to
                                                                      --name transformer \
                                                                       performer_job \
 ```
+The training script will automatically download the OPUS-100 Dataset into the storage directory and start training
