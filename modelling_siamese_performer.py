@@ -45,20 +45,20 @@ class PerformerForSiamese(nn.Module):
         # performer layers
         x = self.performer(x, mask=mask)  # [:, 0, :]
 
-        x = self.activation(x)
-
         x = x.mean(1)
+
+        x = self.activation(x)
 
         return x
 
 
 class AMSLoss(_Loss):
-    def __init__(self, m=0.2):
+    def __init__(self, m=0.5):
         super(AMSLoss, self).__init__()
         self.margin = m
         self.cosine_similarity = nn.CosineSimilarity()
 
-    def rank(self, x: torch.FloatTensor, y: torch.FloatTensor, reverse = False):
+    def rank(self, x: torch.FloatTensor, y: torch.FloatTensor, reverse=False):
 
         N = x.size()[0]
         ret = torch.empty(N).to(x.device)
@@ -82,7 +82,7 @@ class AMSLoss(_Loss):
         return torch.mul(-1 / N, torch.sum(ret))
 
     def forward(self, x: torch.FloatTensor, y: torch.FloatTensor):
-        return torch.add(self.rank(x, y), self.rank(y, x, reverse = True)) #self.rank(x, y)#
+        return torch.add(self.rank(x, y), self.rank(y, x, reverse=True))  # self.rank(x, y)#
 
 
 class SiamesePerformer(nn.Module):
@@ -109,11 +109,17 @@ class SiamesePerformer(nn.Module):
             mask = torch.ones_like(x).bool().detach()
         return self.model(x, mask)
 
-    def forward(self, x1: LongTensor, x2: LongTensor):
+    def forward(self, x1: dict, x2: dict):
         embedding1 = self.model(x1["input_ids"], mask=x1["attention_mask"].bool())
         embedding2 = self.get_embedding(x2["input_ids"], mask=x2["attention_mask"].bool())
         loss_function = AMSLoss()
         return loss_function(embedding1, embedding2)
+
+    @torch.no_grad()
+    def get_similarity(self, x1: dict, x2: dict):
+        x1_emb = self.get_embedding(x1["input_ids"], mask=x1["attention_mask"].bool())
+        x2_emb = self.get_embedding(x2["input_ids"], mask=x2["attention_mask"].bool())
+        return torch.nn.functional.cosine_similarity(x1_emb, x2_emb)
 
     def save_pretrained(self, path):
         torch.save({"vocab_size": self.vocab_size,
@@ -128,6 +134,7 @@ class SiamesePerformer(nn.Module):
 
 if __name__ == "__main__":
     from fastai.optimizer import Lamb
+
     tokenizer = RobertaTokenizer.from_pretrained("roberta-large")
     model = SiamesePerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
     optimizer = Lamb(model.parameters(), lr=0.0001)  # Lamb
@@ -137,8 +144,17 @@ if __name__ == "__main__":
     sentence2_tensor = tokenizer(["I am Andre", "I need support", "do you like dancing?"],
                                  add_special_tokens=True, return_tensors="pt",
                                  padding=True)
+
+    sentence1_test = tokenizer(["Ich bin Andre", "Ich bin Andre"],
+                               add_special_tokens=True, return_tensors="pt",
+                               padding=True)
+    sentence2_test = tokenizer(["I am Andre", "I need support"],
+                               add_special_tokens=True, return_tensors="pt",
+                               padding=True)
+
     for _ in range(200):
         loss = model(sentence1_tensor, sentence2_tensor)
         print(loss.item())
         loss.backward()
         optimizer.step()
+        print(model.get_similarity(sentence1_test, sentence2_test))
