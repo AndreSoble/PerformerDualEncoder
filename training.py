@@ -51,7 +51,9 @@ if __name__ == "__main__":
                 continue
 
             if (i * epoch + i) % int(os.environ.get("STEPS_PER_PRINT")) == 0:
-                #batches = [dev_dataset[]]
+                batches = [dev_dataset[i:(i+len(dev_dataset))] for i in range(0,len(dev_dataset), 32)]
+                for batch in batches:
+                    bs_input = list()
 
                 print(f"{datetime.now()} Epoch {epoch} iter {i} Loss {loss.item()}")
                 model_engine.save_checkpoint(os.environ.get("OUTPUT_DIR"), (i * epoch + i))
