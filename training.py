@@ -40,7 +40,7 @@ if __name__ == "__main__":
         for i, data in enumerate(trainloader):
             model_engine.train()
             data = data_collector_deepspeed(data, tokenizer, model_engine.local_rank)
-            loss = model_engine(**data)
+            loss = model_engine(**data)[0]
             loss = loss.mean()
             losses.append(loss.item())
             model_engine.backward(loss)

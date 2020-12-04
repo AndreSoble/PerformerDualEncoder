@@ -114,7 +114,7 @@ class DualEncoderPerformer(nn.Module):
         embedding1 = self.model(x1["input_ids"], mask=x1["attention_mask"].bool())
         embedding2 = self.model(x2["input_ids"], mask=x2["attention_mask"].bool())
         loss_function = AMSLoss()
-        return loss_function(embedding1, embedding2)
+        return (loss_function(embedding1, embedding2),)
 
     @torch.no_grad()
     def get_similarity(self, x1: dict, x2: dict):
@@ -154,7 +154,7 @@ if __name__ == "__main__":
                                padding=True)
 
     for _ in range(200):
-        loss = model(sentence1_tensor, sentence2_tensor)
+        loss = model(sentence1_tensor, sentence2_tensor)[0]
         print(loss.item())
         loss.backward()
         optimizer.step()

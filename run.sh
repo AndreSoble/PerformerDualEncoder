@@ -1,4 +1,7 @@
 python /workspace/setup.py
-python /workspace/training_huggingface.py
-#deepspeed /workspace/training.py --deepspeed --deepspeed_config /workspace/ds_config.json
+if [ "$TRAINER" = "deepspeed" ]; then
+  deepspeed /workspace/training.py --deepspeed --deepspeed_config /workspace/ds_config.json
+else
+  python /workspace/training_huggingface.py
+fi
 python /workspace/evaluation.py
