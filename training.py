@@ -24,7 +24,7 @@ if __name__ == "__main__":
     corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG", 1))), path=os.environ.get("DATA_DIR", "./storage"))
 
     train_dataset = DataLoaderLaper(
-        corpus.get_train() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train()[0:5000])
+        corpus.get_train() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train()[0:10000])
 
     auto_encoder = SiamesePerformer(tokenizer.vocab_size).cuda()
 
@@ -49,16 +49,6 @@ if __name__ == "__main__":
                 continue
 
             if ((i * epoch + i) % int(os.environ.get("STEPS_PER_PRINT")) == 0 or i == (len(trainloader)-1)) and i != 0:
-                #with torch.no_grad():
-                #    batches = [train_dataset[i:(i + 32)] for i in range(0, len(train_dataset), 32)]
-                #    losses = list()
-                #    for batch in batches:
-                #        bs_input = dict()
-                #        for e in batch:
-                #            bs_input.update(e)
-                #        bs_input = data_collector_deepspeed(bs_input, tokenizer, model_engine.local_rank)
-                #        loss = auto_encoder(**bs_input)
-                #        losses.append(loss.item())
                 print(f"{datetime.now()} Epoch {epoch} iter {i} Loss {sum(losses) / len(losses)}")
                 model_engine.save_checkpoint(os.environ.get("OUTPUT_DIR"), (i * epoch + i))
         if model_engine.local_rank != 0:
