@@ -18,13 +18,15 @@ print(model.get_similarity(sentence1, sentence2))
 ```
 
 ### Training
+
 At first modify the training parameters in env.list. These environ vars will be used during training.
 In addition there is a ds_config.json. 
 In this json you can modify training parameters like learning rate.
 For more information about the ds_config.json check out deepspeed https://www.deepspeed.ai/docs/config-json/
-
 The env.list parameters will be prioritized
-####Run a training on docker
+
+#### Run a training on docker
+
 At first build the images by running
 ```
 bash build_images.sh
