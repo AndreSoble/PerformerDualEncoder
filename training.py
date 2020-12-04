@@ -48,7 +48,7 @@ if __name__ == "__main__":
             if model_engine.local_rank != 0:
                 continue
 
-            if (i * epoch + i) % int(os.environ.get("STEPS_PER_PRINT")) == 0 or i == (len(trainloader)-1):
+            if ((i * epoch + i) % int(os.environ.get("STEPS_PER_PRINT")) == 0 or i == (len(trainloader)-1)) and i != 0:
                 #with torch.no_grad():
                 #    batches = [train_dataset[i:(i + 32)] for i in range(0, len(train_dataset), 32)]
                 #    losses = list()
