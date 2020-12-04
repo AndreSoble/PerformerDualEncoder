@@ -103,6 +103,7 @@ class SiamesePerformer(nn.Module):
     def fix_projection_matrix(self):
         self.model.fix_projection_matrices_()
 
+
     @torch.no_grad()
     def get_embedding(self, x, mask=None):
         if mask is None:
