@@ -6,6 +6,7 @@ ADD ./ds_config.json /workspace/ds_config.json
 ADD ./setup.py /workspace/setup.py
 ADD ./training.py /workspace/training.py
 ADD ./evaluation.py /workspace/evaluation.py
+ADD ./training_huggingface.py /workspace/training_huggingface.py
 ADD ./run.sh /workspace/run.sh
 WORKDIR /
 EXPOSE 6016
