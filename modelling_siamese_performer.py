@@ -78,7 +78,7 @@ class AMSLoss(_WeightedLoss):
 
 
 class SiamesePerformer(nn.Module):
-    def __init__(self, num_tokens, max_seq_len=2048, dim=512, depth=3, heads=4, local_attn_heads=0,
+    def __init__(self, num_tokens, max_seq_len=2048, dim=512, depth=6, heads=4, local_attn_heads=0,
                  local_window_size=256,
                  causal=False, ff_mult=4, nb_features=None, reversible=False, ff_chunks=10, ff_glu=False,
                  emb_dropout=0.1,
@@ -121,13 +121,15 @@ class SiamesePerformer(nn.Module):
 if __name__ == "__main__":
     tokenizer = RobertaTokenizer.from_pretrained("roberta-large")
     model = SiamesePerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
-    optimizer = Adam(model.parameters())
+    optimizer = Adam(model.parameters(), lr=0.005) #Lamb
     sentence1_tensor = tokenizer(["Ich bin Andre", "Ich bin nicht Andre", "Ich bin ein Student"],
                                  add_special_tokens=True, return_tensors="pt",
                                  padding=True)
     sentence2_tensor = tokenizer(["Ich bin Peter", "Ich bin nicht Peter", "Ich bin kein Student"],
                                  add_special_tokens=True, return_tensors="pt",
                                  padding=True)
-    loss = model(sentence1_tensor, sentence2_tensor)
-    loss.backward()
-    optimizer.step()
+    for _ in range(200):
+        loss = model(sentence1_tensor, sentence2_tensor)
+        print(loss.item())
+        loss.backward()
+        optimizer.step()
