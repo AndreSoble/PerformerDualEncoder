@@ -1,7 +1,7 @@
 # PerformerDualEncoder
 In this paper a train funtion will be implemented which will be used to train a performer for language agnostic representations.
 
-### Usage
+### Usage (A pretrained model has not been released yet but will be in the future)
 ```python
 from transformers import RobertaTokenizer
 from modelling_dual_encoder_performer import DualEncoderPerformer
