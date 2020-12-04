@@ -20,7 +20,7 @@
     "params": {
       "warmup_min_lr": 0,
       "warmup_max_lr": 0.0002,
-      "warmup_num_steps": 1
+      "warmup_num_steps": 2
     }
   },
   "wall_clock_breakdown": false
