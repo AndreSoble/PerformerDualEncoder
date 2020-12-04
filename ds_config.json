@@ -5,7 +5,7 @@
   "steps_per_print": 100,
   "max_grad_norm": 0.5,
   "optimizer": {
-    "type": "Lamb",
+    "type": "Adam",
     "params": {
       "lr": 0.00005,
       "betas": [
