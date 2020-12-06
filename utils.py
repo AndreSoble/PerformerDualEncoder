@@ -65,19 +65,20 @@ def data_collector_deepspeed(batch_of_sentences, _tokenizer, rank):
     }
 
 
-tokenizer = RobertaTokenizerFast.from_pretrained("roberta-large")
+tokenizer = RobertaTokenizerFast.from_pretrained(
+    "roberta-large" if not bool(int(os.environ.get("ROBERTA"))) else "distilroberta-base")
 
 
 def data_collector_huggingface(batch_of_sentences):
     global tokenizer, rank
     source_batch = tokenizer([s["source"] for s in batch_of_sentences], add_special_tokens=True, padding=True,
-                             return_tensors="pt", truncation=True, max_length = 512)
+                             return_tensors="pt", truncation=True, max_length=512)
     target_batch = tokenizer([s["target"] for s in batch_of_sentences], add_special_tokens=True, padding=True,
-                             return_tensors="pt", truncation=True, max_length = 512)
-    src_in = source_batch["input_ids"]#.transpose(0, 1)[0:512].transpose(0, 1),
-    src_attn = source_batch["attention_mask"]#.transpose(0, 1)[0:512].transpose(0, 1)
-    tgt_in = target_batch["input_ids"]#.transpose(0, 1)[0:512].transpose(0, 1),
-    tgt_attn = target_batch["attention_mask"]#.transpose(0, 1)[0:512].transpose(0, 1)
+                             return_tensors="pt", truncation=True, max_length=512)
+    src_in = source_batch["input_ids"]  # .transpose(0, 1)[0:512].transpose(0, 1),
+    src_attn = source_batch["attention_mask"]  # .transpose(0, 1)[0:512].transpose(0, 1)
+    tgt_in = target_batch["input_ids"]  # .transpose(0, 1)[0:512].transpose(0, 1),
+    tgt_attn = target_batch["attention_mask"]  # .transpose(0, 1)[0:512].transpose(0, 1)
 
     return {
         "x1": {

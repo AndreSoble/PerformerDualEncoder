@@ -19,7 +19,7 @@ tokenizer = RobertaTokenizer.from_pretrained(os.environ.get("PRETRAINED_VOCAB_PA
 warnings.simplefilter("ignore", UserWarning)
 
 
-tokenizer = RobertaTokenizer.from_pretrained("roberta-large")
+tokenizer = RobertaTokenizer.from_pretrained("roberta-large" if not bool(int(os.environ.get("ROBERTA"))) else "distilroberta-base")
 
 assert download_and_extract(path=os.environ.get("DATA_DIR", "./storage"))
 corpus = Corpus()

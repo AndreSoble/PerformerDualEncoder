@@ -1,4 +1,5 @@
 import datetime
+import os
 
 import torch
 from performer_pytorch.performer_pytorch import cast_tuple, find_modules, FastAttention, get_module_device, Performer
@@ -6,7 +7,7 @@ from torch import nn, LongTensor, FloatTensor
 from torch.nn import CrossEntropyLoss
 from torch.nn.modules.loss import _WeightedLoss, _Loss
 from torch.optim import Adam, SGD
-from transformers import RobertaTokenizer, RobertaTokenizerFast
+from transformers import RobertaTokenizer, RobertaTokenizerFast, RobertaModel
 
 
 class PerformerForDualEncoder(nn.Module):
@@ -136,12 +137,55 @@ class DualEncoderPerformer(nn.Module):
         cls.load_state_dict(si["states"])
 
 
+class DualEncoderRoberta(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.model = RobertaModel.from_pretrained("distilroberta-base")
+
+    def fix_projection_matrix(self):
+        self.model.fix_projection_matrices_()
+
+    @torch.no_grad()
+    def get_embedding(self, x, mask=None):
+        if mask is None:
+            mask = torch.ones_like(x).detach()
+        return self.model(x, mask)[0].mean(1)
+
+    def forward(self, x1: dict, x2: dict):
+        embedding1 = self.model(x1["input_ids"],
+                                attention_mask=x1["attention_mask"])[0].mean(1)
+        embedding2 = self.model(x2["input_ids"],
+                                attention_mask=x2["attention_mask"])[0].mean(1)
+        loss_function = AMSLoss()
+        return (loss_function(embedding1, embedding2, one_direction=False),)
+
+    @torch.no_grad()
+    def get_similarity(self, x1: dict, x2: dict):
+        x1_emb = self.get_embedding(x1["input_ids"], mask=x1["attention_mask"])
+        x2_emb = self.get_embedding(x2["input_ids"], mask=x2["attention_mask"])
+        return torch.nn.functional.cosine_similarity(x1_emb, x2_emb)
+
+    def save_pretrained(self, path):
+        torch.save({"vocab_size": self.vocab_size,
+                    "states": self.state_dict()}, path)
+
+    @staticmethod
+    def from_pretrained(path):
+        si = torch.load(path)
+        cls = DualEncoderPerformer(si["vocab_size"])
+        cls.load_state_dict(si["states"])
+
+
+
 if __name__ == "__main__":
     from fastai.optimizer import Lamb
 
-    tokenizer = RobertaTokenizerFast.from_pretrained("roberta-large")
-    model = DualEncoderPerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
-    optimizer = Lamb(model.parameters(), lr=0.0001)  # Lamb
+    #tokenizer = RobertaTokenizerFast.from_pretrained(
+    #    "roberta-large" if not bool(int(os.environ.get("ROBERTA"))) else "distilroberta-base")
+    #model = DualEncoderPerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
+    tokenizer = RobertaTokenizerFast.from_pretrained("distilroberta-base")
+    model = DualEncoderRoberta()
+    optimizer = Lamb(model.parameters(), lr=0.001)  # Lamb
     sentence1_tensor = tokenizer(["Ich bin Andre", "Ich brauche hilfe", "Du magst tanzen?"],
                                  add_special_tokens=True, return_tensors="pt",
                                  padding=True)
