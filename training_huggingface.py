@@ -26,6 +26,7 @@ test_dataset = DataLoaderLaper(
 
 auto_encoder = DualEncoderPerformer(tokenizer.vocab_size)
 
+
 training_args = TrainingArguments(
     output_dir="./results",  # output directory
     num_train_epochs=20,  # total # of training epochs
