@@ -26,7 +26,6 @@ test_dataset = DataLoaderLaper(
 
 auto_encoder = DualEncoderPerformer(tokenizer.vocab_size)
 
-
 training_args = TrainingArguments(
     output_dir="./results",  # output directory
     num_train_epochs=int(os.environ.get("EPOCHS")),  # total # of training epochs
@@ -40,7 +39,9 @@ training_args = TrainingArguments(
     logging_dir='./logs',  # directory for storing logs
     evaluation_strategy=EvaluationStrategy.EPOCH,
     save_total_limit=5,
-    prediction_loss_only=True
+    prediction_loss_only=True,
+    local_rank=torch.cuda.device_count(),
+    gradient_accumulation_steps=int(os.environ.get("GRADIENT_ACCUMULATION_STEPS"))
 )
 
 trainer = Trainer(
