@@ -29,13 +29,13 @@ auto_encoder = DualEncoderPerformer(tokenizer.vocab_size)
 
 training_args = TrainingArguments(
     output_dir="./results",  # output directory
-    num_train_epochs=20,  # total # of training epochs
-    per_device_train_batch_size=100,
+    num_train_epochs=int(os.environ.get("EPOCHS")),  # total # of training epochs
+    per_device_train_batch_size=int(os.environ.get("BATCH_SIZE_PER_GPU")),
     # batch size per device during training
-    per_device_eval_batch_size=50,  # batch size for evaluation
-    warmup_steps=500,
-    save_steps=500,
-    logging_steps=100,  # number of warmup steps for learning rate scheduler
+    per_device_eval_batch_size=int(os.environ.get("BATCH_SIZE_PER_GPU")),  # batch size for evaluation
+    warmup_steps=int(os.environ.get("WARMUP_NUM_STEPS")),
+    save_steps=int(os.environ.get("STEPS_PER_PRINT")),
+    logging_steps=int(os.environ.get("STEPS_PER_PRINT")),  # number of warmup steps for learning rate scheduler
     weight_decay=0.01,  # strength of weight decay
     logging_dir='./logs',  # directory for storing logs
     evaluation_strategy=EvaluationStrategy.EPOCH,
