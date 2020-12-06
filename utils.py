@@ -81,11 +81,11 @@ def data_collector_huggingface(batch_of_sentences):
 
     return {
         "x1": {
-            "input_ids": src_in[0],
+            "input_ids": src_in,
             "attention_mask": src_attn
         },
         "x2": {
-            "input_ids": tgt_in[0],
+            "input_ids": tgt_in,
             "attention_mask": tgt_attn
         },
     }
