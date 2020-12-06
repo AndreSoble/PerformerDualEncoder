@@ -28,7 +28,7 @@ class PerformerForDualEncoder(nn.Module):
         self.performer = Performer(dim, depth, heads, local_attn_heads, local_window_size, causal, ff_mult, nb_features,
                                    reversible, ff_chunks, generalized_attention, kernel_fn, qr_uniform_q, use_scalenorm,
                                    use_rezero, ff_glu, ff_dropout, attn_dropout, cross_attend)
-        self.linear = nn.Linear(10,10)
+        self.linear = nn.Linear(10, 10)
         self.activation = torch.nn.Softsign()
 
     def fix_projection_matrices_(self):
@@ -112,12 +112,12 @@ class DualEncoderPerformer(nn.Module):
         return self.model(x, mask)
 
     def forward(self, x1: dict, x2: dict):
-        print(datetime.datetime.now(),self.model.linear.weight.device)
-        print(x1["input_ids"].device)
-        embedding1 = self.model(x1["input_ids"].to(self.model.linear.weight.device), mask=x1["attention_mask"].to(self.model.linear.weight.device).bool())
-        embedding2 = self.model(x2["input_ids"].to(self.model.linear.weight.device), mask=x2["attention_mask"].to(self.model.linear.weight.device).bool())
+        embedding1 = self.model(x1["input_ids"].to(self.model.linear.weight.device),
+                                mask=x1["attention_mask"].to(self.model.linear.weight.device).bool())
+        embedding2 = self.model(x2["input_ids"].to(self.model.linear.weight.device),
+                                mask=x2["attention_mask"].to(self.model.linear.weight.device).bool())
         loss_function = AMSLoss()
-        return (loss_function(embedding1, embedding2, one_direction = False),)
+        return (loss_function(embedding1, embedding2, one_direction=False),)
 
     @torch.no_grad()
     def get_similarity(self, x1: dict, x2: dict):
@@ -162,4 +162,3 @@ if __name__ == "__main__":
         loss.backward()
         optimizer.step()
         print(model.get_similarity(sentence1_test, sentence2_test))
-
