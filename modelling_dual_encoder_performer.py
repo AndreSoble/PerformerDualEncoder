@@ -103,6 +103,7 @@ class DualEncoderPerformer(nn.Module):
     def fix_projection_matrix(self):
         self.model.fix_projection_matrices_()
 
+
     @torch.no_grad()
     def get_embedding(self, x, mask=None):
         if mask is None:
@@ -111,9 +112,9 @@ class DualEncoderPerformer(nn.Module):
 
     def forward(self, x1: dict, x2: dict):
         embedding1 = self.model(x1["input_ids"], mask=x1["attention_mask"].bool())
-        embedding2 = self.get_embedding(x2["input_ids"], mask=x2["attention_mask"].bool())
+        embedding2 = self.model(x2["input_ids"], mask=x2["attention_mask"].bool())
         loss_function = AMSLoss()
-        return (loss_function(embedding1, embedding2, one_direction=True),)
+        return (loss_function(embedding1, embedding2, one_direction = False),)
 
     @torch.no_grad()
     def get_similarity(self, x1: dict, x2: dict):
@@ -158,3 +159,4 @@ if __name__ == "__main__":
         loss.backward()
         optimizer.step()
         print(model.get_similarity(sentence1_test, sentence2_test))
+
