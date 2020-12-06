@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import torch
 from transformers import RobertaTokenizer
@@ -12,6 +13,9 @@ from utils import DataLoaderLaper, data_collector_huggingface
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 tokenizer = RobertaTokenizer.from_pretrained(os.environ.get("PRETRAINED_VOCAB_PATH", "distilroberta-base"))
+
+warnings.simplefilter("ignore", UserWarning)
+
 
 tokenizer = RobertaTokenizer.from_pretrained("roberta-large")
 
