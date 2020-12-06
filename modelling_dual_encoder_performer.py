@@ -6,7 +6,7 @@ from torch import nn, LongTensor, FloatTensor
 from torch.nn import CrossEntropyLoss
 from torch.nn.modules.loss import _WeightedLoss, _Loss
 from torch.optim import Adam, SGD
-from transformers import RobertaTokenizer
+from transformers import RobertaTokenizer, RobertaTokenizerFast
 
 
 class PerformerForDualEncoder(nn.Module):
@@ -139,7 +139,7 @@ class DualEncoderPerformer(nn.Module):
 if __name__ == "__main__":
     from fastai.optimizer import Lamb
 
-    tokenizer = RobertaTokenizer.from_pretrained("roberta-large")
+    tokenizer = RobertaTokenizerFast.from_pretrained("roberta-large")
     model = DualEncoderPerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
     optimizer = Lamb(model.parameters(), lr=0.0001)  # Lamb
     sentence1_tensor = tokenizer(["Ich bin Andre", "Ich brauche hilfe", "Du magst tanzen?"],
