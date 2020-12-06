@@ -111,8 +111,9 @@ class DualEncoderPerformer(nn.Module):
         return self.model(x, mask)
 
     def forward(self, x1: dict, x2: dict):
-        embedding1 = self.model(x1["input_ids"], mask=x1["attention_mask"].bool())
-        embedding2 = self.model(x2["input_ids"], mask=x2["attention_mask"].bool())
+        self.weight.device
+        embedding1 = self.model(x1["input_ids"].to(self.model.weight.device), mask=x1["attention_mask"].to(self.model.weight.device).bool())
+        embedding2 = self.model(x2["input_ids"].to(self.model.weight.device), mask=x2["attention_mask"].to(self.model.weight.device).bool())
         loss_function = AMSLoss()
         return (loss_function(embedding1, embedding2, one_direction = False),)
 
