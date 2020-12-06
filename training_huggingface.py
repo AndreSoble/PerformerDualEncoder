@@ -9,7 +9,7 @@ from transformers.trainer import Trainer
 from transformers.trainer import TrainingArguments
 from transformers.trainer_utils import EvaluationStrategy
 
-from modelling_dual_encoder_performer import DualEncoderPerformer
+from modelling_dual_encoder_performer import DualEncoderPerformer, DualEncoderRoberta
 from preprocessing import download_and_extract, Corpus
 from utils import DataLoaderLaper, data_collector_huggingface
 
@@ -18,8 +18,8 @@ tokenizer = RobertaTokenizer.from_pretrained(os.environ.get("PRETRAINED_VOCAB_PA
 
 warnings.simplefilter("ignore", UserWarning)
 
-
-tokenizer = RobertaTokenizer.from_pretrained("roberta-large" if not bool(int(os.environ.get("ROBERTA"))) else "distilroberta-base")
+tokenizer = RobertaTokenizer.from_pretrained(
+    "roberta-large" if not bool(int(os.environ.get("ROBERTA"))) else "distilroberta-base")
 
 assert download_and_extract(path=os.environ.get("DATA_DIR", "./storage"))
 corpus = Corpus()
@@ -30,7 +30,8 @@ train_dataset = DataLoaderLaper(
 test_dataset = DataLoaderLaper(
     corpus.get_dev() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_dev()[0:5000])
 print(f"Trainingdata amount {len(train_dataset)}")
-auto_encoder = DualEncoderPerformer(tokenizer.vocab_size)
+auto_encoder = DualEncoderPerformer(tokenizer.vocab_size) if not bool(
+    int(os.environ.get("ROBERTA"))) else DualEncoderRoberta()
 
 training_args = TrainingArguments(
     output_dir="./results",  # output directory
@@ -61,4 +62,5 @@ print(f"Starttime {datetime.now()}")
 output = trainer.train()
 print(f"Endtime {datetime.now()}")
 end_time = time.time()
-print(f"The training took {(end_time-start_time)} seconds = {((end_time-start_time)/60)} minutes = {((end_time-start_time)/60/60)} hours")
+print(
+    f"The training took {(end_time - start_time)} seconds = {((end_time - start_time) / 60)} minutes = {((end_time - start_time) / 60 / 60)} hours")
