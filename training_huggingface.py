@@ -40,7 +40,7 @@ training_args = TrainingArguments(
     evaluation_strategy=EvaluationStrategy.EPOCH,
     save_total_limit=5,
     prediction_loss_only=True,
-    local_rank=torch.cuda.device_count(),
+    #local_rank=torch.cuda.device_count(),
     gradient_accumulation_steps=int(os.environ.get("GRADIENT_ACCUMULATION_STEPS"))
 )
 
