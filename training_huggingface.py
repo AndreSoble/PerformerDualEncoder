@@ -40,7 +40,7 @@ training_args = TrainingArguments(
     # batch size per device during training
     per_device_eval_batch_size=int(os.environ.get("BATCH_SIZE_PER_GPU")),  # batch size for evaluation
     warmup_steps=int(os.environ.get("WARMUP_NUM_STEPS")),
-    save_steps=int(os.environ.get("STEPS_PER_PRINT")),
+    save_steps=int(os.environ.get("STEPS_PER_SAVE")),
     logging_steps=int(os.environ.get("STEPS_PER_PRINT")),  # number of warmup steps for learning rate scheduler
     weight_decay=0.01,  # strength of weight decay
     logging_dir='./logs',  # directory for storing logs
