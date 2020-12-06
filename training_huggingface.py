@@ -1,5 +1,7 @@
 import os
+import time
 import warnings
+from datetime import datetime
 
 import torch
 from transformers import RobertaTokenizer
@@ -27,7 +29,7 @@ train_dataset = DataLoaderLaper(
     corpus.get_train() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train()[0:5000])
 test_dataset = DataLoaderLaper(
     corpus.get_dev() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_dev()[0:5000])
-
+print(f"Trainingdata amount {len(train_dataset)}")
 auto_encoder = DualEncoderPerformer(tokenizer.vocab_size)
 
 training_args = TrainingArguments(
@@ -54,5 +56,9 @@ trainer = Trainer(
     eval_dataset=test_dataset,  # evaluation dataset
     data_collator=data_collector_huggingface
 )
-
+start_time = time.time()
+print(f"Starttime {datetime.now()}")
 output = trainer.train()
+print(f"Endtime {datetime.now()}")
+end_time = time.time()
+print(f"The training took {(end_time-start_time)} seconds = {((end_time-start_time)/60)} minutes = {((end_time-start_time)/60/60)} hours")
