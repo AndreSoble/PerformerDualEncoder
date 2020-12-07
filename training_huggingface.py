@@ -51,15 +51,13 @@ training_args = TrainingArguments(
     gradient_accumulation_steps=int(os.environ.get("GRADIENT_ACCUMULATION_STEPS", 1))
 )
 optimizer = Lamb(auto_encoder.parameters(), float(os.environ.get("LEARNING_RATE", 0.001)))
-lambda1 = lambda epoch: 0.1 * epoch
-scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
 trainer = Trainer(
     model=auto_encoder,  # the instantiated 🤗 Transformers model to be trained
     args=training_args,  # training arguments, defined above
     train_dataset=train_dataset,  # training dataset
     eval_dataset=test_dataset,  # evaluation dataset
     data_collator=data_collector_huggingface,
-    optimizers=(optimizer, scheduler)
+    optimizers=(optimizer, None)
 )
 start_time = time.time()
 print(f"Starttime {datetime.now()}")
