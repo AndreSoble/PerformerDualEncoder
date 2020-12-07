@@ -66,7 +66,7 @@ def data_collector_deepspeed(batch_of_sentences, _tokenizer, rank):
 
 
 tokenizer = RobertaTokenizerFast.from_pretrained(
-    "roberta-large" if not bool(int(os.environ.get("ROBERTA"))) else "distilroberta-base")
+    "roberta-large" if not bool(int(os.environ.get("ROBERTA",1))) else "distilroberta-base")
 
 
 def data_collector_huggingface(batch_of_sentences):
