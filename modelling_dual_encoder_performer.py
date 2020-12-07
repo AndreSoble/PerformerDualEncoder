@@ -143,19 +143,19 @@ class DualEncoderRoberta(nn.Module):
         self.model = RobertaModel.from_pretrained("distilroberta-base")
 
     def fix_projection_matrix(self):
-        self.model.fix_projection_matrices_()
+        pass
 
     @torch.no_grad()
     def get_embedding(self, x, mask=None):
         if mask is None:
             mask = torch.ones_like(x).detach()
-        return self.model(x, mask)[0].mean(1)
+        return self.model(x, mask)[1]
 
     def forward(self, x1: dict, x2: dict):
         embedding1 = self.model(x1["input_ids"],
-                                attention_mask=x1["attention_mask"])[0].mean(1)
+                                attention_mask=x1["attention_mask"])[1]
         embedding2 = self.model(x2["input_ids"],
-                                attention_mask=x2["attention_mask"])[0].mean(1)
+                                attention_mask=x2["attention_mask"])[1]
         loss_function = AMSLoss()
         return (loss_function(embedding1, embedding2, one_direction=False),)
 
