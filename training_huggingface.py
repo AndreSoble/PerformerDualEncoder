@@ -22,7 +22,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 warnings.simplefilter("ignore", UserWarning)
 
-tokenizer = AutoTokenizer.from_pretrained(os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER", "xlm-roberta-base"))
+tokenizer = AutoTokenizer.from_pretrained(os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER", "distilbert-base-multilingual-cased"))
 
 assert download_and_extract(path=os.environ.get("DATA_DIR", "./storage"))
 corpus = Corpus()

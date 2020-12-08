@@ -137,7 +137,8 @@ class DualEncoderPerformer(nn.Module):
 class DualEncoderRoberta(nn.Module):
     def __init__(self):
         super().__init__()
-        self.model = AutoModel.from_pretrained(os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER", "distilroberta-base"))
+        self.model = AutoModel.from_pretrained(
+            os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER", "distilbert-base-multilingual-cased"))
 
     def fix_projection_matrix(self):
         pass
@@ -146,14 +147,14 @@ class DualEncoderRoberta(nn.Module):
     def get_embedding(self, x, mask=None):
         if mask is None:
             mask = torch.ones_like(x).detach()
-        return self.model(x, attention_mask=mask)[1]
+        return self.model(x, attention_mask=mask)[0][:, 0, :]
 
     def forward(self, x1: dict, x2: dict):
         loss_function = AMSLoss()
         embedding1 = self.model(x1["input_ids"],
-                                attention_mask=x1["attention_mask"])[1]
+                                attention_mask=x1["attention_mask"])[0][:, 0, :]
         embedding2 = self.model(x2["input_ids"],
-                                attention_mask=x2["attention_mask"])[1]
+                                attention_mask=x2["attention_mask"])[0][:, 0, :]
         return (loss_function(embedding1, embedding2, one_direction=False), embedding1, embedding2)
 
     @torch.no_grad()
@@ -179,10 +180,10 @@ if __name__ == "__main__":
     # tokenizer = RobertaTokenizerFast.from_pretrained(
     #    "roberta-large" if not bool(int(os.environ.get("ROBERTA"))) else "xlm-roberta-base")
     # model = DualEncoderPerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
-    #distilbert-base-multilingual-cased
-    #distilroberta-base
-
-
+    # distilbert-base-multilingual-cased
+    # distilroberta-base
+    # DeepPavlov/bert-base-multilingual-cased-sentence
+    # bert-base-multilingual-cased
 
     tokenizer = AutoTokenizer.from_pretrained("distilroberta-base")
     model = DualEncoderPerformer(tokenizer.vocab_size)
