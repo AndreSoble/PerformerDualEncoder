@@ -12,14 +12,17 @@ from transformers.trainer_utils import EvaluationStrategy
 from lamb import Lamb
 from modelling_dual_encoder_performer import DualEncoderPerformer, DualEncoderRoberta
 from preprocessing import download_and_extract, Corpus
-from utils import DataLoaderLaper, data_collector_huggingface
+from utils import DataLoaderLaper, data_collector_huggingface, run_tensorboard
 
+os.system("rm -r -f /tensorboard/*")
+x = threading.Thread(target=run_tensorboard)
+x.start()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 tokenizer = RobertaTokenizer.from_pretrained(os.environ.get("PRETRAINED_VOCAB_PATH", "distilroberta-base"))
 
 warnings.simplefilter("ignore", UserWarning)
 
-tokenizer = AutoTokenizer.from_pretrained(os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER","distilroberta-base"))
+tokenizer = AutoTokenizer.from_pretrained(os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER", "distilroberta-base"))
 
 assert download_and_extract(path=os.environ.get("DATA_DIR", "./storage"))
 corpus = Corpus()

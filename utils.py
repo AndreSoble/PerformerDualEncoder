@@ -4,7 +4,7 @@ from typing import List
 
 import deepspeed
 from torch.utils.data import Dataset
-from transformers import RobertaTokenizer, RobertaTokenizerFast, AutoTokenizer
+from transformers import AutoTokenizer
 
 from preprocessing import SentencePair
 
@@ -21,6 +21,13 @@ class DataLoaderLaper(Dataset):
             "source": self.items[idx].get_source(),
             "target": self.items[idx].get_target()
         }
+
+
+def run_tensorboard():
+    os.system(
+        "tensorboard --logdir=" + os.environ.get("LOG_DIR",
+                                                 "./logs") + " --reload_interval=15 " + "--port=" + os.environ.get(
+            "TENSORBOARD_PORT", "6006") + " --host " + os.environ.get("TENSORBOARD_HOST", "127.0.0.1"))
 
 
 def add_argument():
@@ -65,7 +72,7 @@ def data_collector_deepspeed(batch_of_sentences, _tokenizer, rank):
     }
 
 
-tokenizer = AutoTokenizer.from_pretrained(os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER","distilroberta-base"))
+tokenizer = AutoTokenizer.from_pretrained(os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER", "distilroberta-base"))
 
 
 def data_collector_huggingface(batch_of_sentences):

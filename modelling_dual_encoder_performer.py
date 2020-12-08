@@ -4,7 +4,7 @@ import torch
 from performer_pytorch.performer_pytorch import cast_tuple, find_modules, FastAttention, get_module_device, Performer
 from torch import nn
 from torch.nn.modules.loss import _Loss
-from transformers import RobertaTokenizerFast, RobertaModel, AutoModel, AutoTokenizer
+from transformers import AutoModel, AutoTokenizer
 
 
 class PerformerForDualEncoder(nn.Module):
@@ -137,7 +137,7 @@ class DualEncoderPerformer(nn.Module):
 class DualEncoderRoberta(nn.Module):
     def __init__(self):
         super().__init__()
-        self.model = AutoModel.from_pretrained(os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER","distilroberta-base"))
+        self.model = AutoModel.from_pretrained(os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER", "distilroberta-base"))
 
     def fix_projection_matrix(self):
         pass
@@ -146,14 +146,14 @@ class DualEncoderRoberta(nn.Module):
     def get_embedding(self, x, mask=None):
         if mask is None:
             mask = torch.ones_like(x).detach()
-        return self.model(x, mask)[1]
+        return self.model(x, attention_mask=mask)[1]
 
     def forward(self, x1: dict, x2: dict):
+        loss_function = AMSLoss()
         embedding1 = self.model(x1["input_ids"],
                                 attention_mask=x1["attention_mask"])[1]
         embedding2 = self.model(x2["input_ids"],
                                 attention_mask=x2["attention_mask"])[1]
-        loss_function = AMSLoss()
         return (loss_function(embedding1, embedding2, one_direction=False),)
 
     @torch.no_grad()
@@ -173,13 +173,12 @@ class DualEncoderRoberta(nn.Module):
         cls.load_state_dict(si["states"])
 
 
-
 if __name__ == "__main__":
     from fastai.optimizer import Lamb
 
-    #tokenizer = RobertaTokenizerFast.from_pretrained(
+    # tokenizer = RobertaTokenizerFast.from_pretrained(
     #    "roberta-large" if not bool(int(os.environ.get("ROBERTA"))) else "distilroberta-base")
-    #model = DualEncoderPerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
+    # model = DualEncoderPerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
     tokenizer = AutoTokenizer.from_pretrained("distilroberta-base")
     model = DualEncoderRoberta()
     optimizer = Lamb(model.parameters(), lr=0.001)  # Lamb
