@@ -30,16 +30,19 @@ corpus = Corpus()
 corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG", 1))), path=os.environ.get("DATA_DIR", "./storage"))
 
 train_dataset = DataLoaderLaper(
-    corpus.get_train(shuffled=True) if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train(shuffled=True)[0:100])
+    corpus.get_train(shuffled=True) if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train(
+        shuffled=True)[0:20])
 test_dataset = DataLoaderLaper(
-    corpus.get_dev() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_dev()[0:100])
+    corpus.get_dev() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_dev()[0:20])
+eval_dataset = DataLoaderLaper(
+    corpus.get_eval() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_eval()[0:20])
 print(f"Trainingdata amount {len(train_dataset)}")
 auto_encoder = DualEncoderPerformer(tokenizer.vocab_size) if not bool(
     int(os.environ.get("ROBERTA", 1))) else DualEncoderRoberta()
 
 training_args = TrainingArguments(
     output_dir="./results",  # output directory
-    num_train_epochs=int(os.environ.get("EPOCHS", 10)),  # total # of training epochs
+    num_train_epochs=int(os.environ.get("EPOCHS", 1)),  # total # of training epochs
     per_device_train_batch_size=int(os.environ.get("BATCH_SIZE_PER_GPU", 5)),
     # batch size per device during training
     per_device_eval_batch_size=int(os.environ.get("BATCH_SIZE_PER_GPU", 5)),  # batch size for evaluation
@@ -63,9 +66,12 @@ trainer = CustomTrainer(
     data_collator=data_collector_huggingface,
     optimizers=(optimizer, None)
 )
+
 start_time = time.time()
 print(f"Starttime {datetime.now()}")
 output = trainer.train()
+print("Running final evaluation")
+trainer.evaluate(eval_dataset)
 print(f"Endtime {datetime.now()}")
 end_time = time.time()
 print(
