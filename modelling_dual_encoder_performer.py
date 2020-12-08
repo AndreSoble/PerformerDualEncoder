@@ -1,3 +1,5 @@
+import os
+
 import torch
 from performer_pytorch.performer_pytorch import cast_tuple, find_modules, FastAttention, get_module_device, Performer
 from torch import nn
