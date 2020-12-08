@@ -180,7 +180,7 @@ if __name__ == "__main__":
     #    "roberta-large" if not bool(int(os.environ.get("ROBERTA"))) else "distilroberta-base")
     # model = DualEncoderPerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
     tokenizer = AutoTokenizer.from_pretrained("distilroberta-base")
-    model = DualEncoderRoberta()
+    model = DualEncoderPerformer(tokenizer.vocab_size)
     optimizer = Lamb(model.parameters(), lr=0.001)  # Lamb
     sentence1_tensor = tokenizer(["Ich bin Andre", "Ich brauche hilfe", "Du magst tanzen?"],
                                  add_special_tokens=True, return_tensors="pt",
