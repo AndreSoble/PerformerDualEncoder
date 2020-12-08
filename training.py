@@ -4,7 +4,7 @@ from datetime import time, datetime
 
 import deepspeed
 import torch
-from transformers import RobertaTokenizer
+from transformers import RobertaTokenizer, AutoTokenizer
 
 from modelling_dual_encoder_performer import DualEncoderPerformer
 from preprocessing import Corpus, download_and_extract
@@ -18,7 +18,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 if __name__ == "__main__":
 
     print("Loading data...")
-    tokenizer = RobertaTokenizer.from_pretrained("roberta-large")
+    tokenizer = AutoTokenizer.from_pretrained("roberta-large")
 
     assert download_and_extract(path=os.environ.get("DATA_DIR", "./storage"))
     corpus = Corpus()

@@ -8,10 +8,10 @@ pip install -r requirements.txt
 
 ### Usage (A pretrained model has not been released yet but will be in the future)
 ```python
-from transformers import RobertaTokenizer
+from transformers import AutoTokenizer
 from modelling_dual_encoder_performer import DualEncoderPerformer
 
-tokenizer = RobertaTokenizer.from_pretrained("roberta-large")
+tokenizer = AutoTokenizer.from_pretrained("roberta-large")
 model = DualEncoderPerformer(num_tokens=tokenizer.vocab_size)
 sentences1 = tokenizer(["Ich bin Andre", "Ich bin Andre"],
                       add_special_tokens=True, return_tensors="pt",

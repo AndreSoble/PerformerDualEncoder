@@ -4,7 +4,7 @@ from typing import List
 
 import deepspeed
 from torch.utils.data import Dataset
-from transformers import RobertaTokenizer, RobertaTokenizerFast
+from transformers import RobertaTokenizer, RobertaTokenizerFast, AutoTokenizer
 
 from preprocessing import SentencePair
 
@@ -65,8 +65,7 @@ def data_collector_deepspeed(batch_of_sentences, _tokenizer, rank):
     }
 
 
-tokenizer = RobertaTokenizerFast.from_pretrained(
-    "roberta-large" if not bool(int(os.environ.get("ROBERTA",1))) else "distilroberta-base")
+tokenizer = AutoTokenizer.from_pretrained(os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER","distilroberta-base"))
 
 
 def data_collector_huggingface(batch_of_sentences):

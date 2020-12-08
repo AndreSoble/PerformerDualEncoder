@@ -1,13 +1,8 @@
-import datetime
-import os
-
 import torch
 from performer_pytorch.performer_pytorch import cast_tuple, find_modules, FastAttention, get_module_device, Performer
-from torch import nn, LongTensor, FloatTensor
-from torch.nn import CrossEntropyLoss
-from torch.nn.modules.loss import _WeightedLoss, _Loss
-from torch.optim import Adam, SGD
-from transformers import RobertaTokenizer, RobertaTokenizerFast, RobertaModel
+from torch import nn
+from torch.nn.modules.loss import _Loss
+from transformers import RobertaTokenizerFast, RobertaModel, AutoModel, AutoTokenizer
 
 
 class PerformerForDualEncoder(nn.Module):
@@ -140,7 +135,7 @@ class DualEncoderPerformer(nn.Module):
 class DualEncoderRoberta(nn.Module):
     def __init__(self):
         super().__init__()
-        self.model = RobertaModel.from_pretrained("distilroberta-base")
+        self.model = AutoModel.from_pretrained(os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER","distilroberta-base"))
 
     def fix_projection_matrix(self):
         pass
@@ -183,7 +178,7 @@ if __name__ == "__main__":
     #tokenizer = RobertaTokenizerFast.from_pretrained(
     #    "roberta-large" if not bool(int(os.environ.get("ROBERTA"))) else "distilroberta-base")
     #model = DualEncoderPerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
-    tokenizer = RobertaTokenizerFast.from_pretrained("distilroberta-base")
+    tokenizer = AutoTokenizer.from_pretrained("distilroberta-base")
     model = DualEncoderRoberta()
     optimizer = Lamb(model.parameters(), lr=0.001)  # Lamb
     sentence1_tensor = tokenizer(["Ich bin Andre", "Ich brauche hilfe", "Du magst tanzen?"],
