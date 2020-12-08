@@ -26,7 +26,7 @@ class DataLoaderLaper(Dataset):
 def run_tensorboard():
     os.system(
         "tensorboard --logdir=" + os.environ.get("LOG_DIR",
-                                                 "./tensorboard") +  " --port=6006")
+                                                 "./tensorboard") + " --port=6006 --host=0.0.0.0")
 
 
 def add_argument():
