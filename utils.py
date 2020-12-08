@@ -75,7 +75,7 @@ class CustomTrainer(Trainer):
                         xxx[idx] = negative_samples_similarities_exp[idx]
                     neg.append(torch.mean(xxx).item())
                 true_loss = sum(neg) / len(neg) + true_loss
-                losses.append(outputs[0].item())
+                losses.append(outputs[0].mean().item())
                 true_losses.append(true_loss)
 
         metrics = {
