@@ -36,7 +36,7 @@ auto_encoder = DualEncoderPerformer(tokenizer.vocab_size) if not bool(
 
 training_args = TrainingArguments(
     output_dir="./results",  # output directory
-    num_train_epochs=int(os.environ.get("EPOCHS", 5)),  # total # of training epochs
+    num_train_epochs=int(os.environ.get("EPOCHS", 10)),  # total # of training epochs
     per_device_train_batch_size=int(os.environ.get("BATCH_SIZE_PER_GPU", 5)),
     # batch size per device during training
     per_device_eval_batch_size=int(os.environ.get("BATCH_SIZE_PER_GPU", 5)),  # batch size for evaluation
