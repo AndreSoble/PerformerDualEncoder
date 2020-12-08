@@ -10,5 +10,5 @@ ADD ./training_huggingface.py /workspace/training_huggingface.py
 ADD ./lamb.py /workspace/lamb.py
 ADD ./run.sh /workspace/run.sh
 WORKDIR /
-EXPOSE 6016
+EXPOSE 6006
 ENTRYPOINT ["bash","/workspace/run.sh"]
