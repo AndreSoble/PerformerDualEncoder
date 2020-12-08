@@ -4,7 +4,7 @@ from typing import List
 
 import deepspeed
 from torch.utils.data import Dataset
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, EvalPrediction
 
 from preprocessing import SentencePair
 

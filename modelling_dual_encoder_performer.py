@@ -115,7 +115,7 @@ class DualEncoderPerformer(nn.Module):
         embedding2 = self.model(x2["input_ids"].to(self.model.linear.weight.device),
                                 mask=x2["attention_mask"].to(self.model.linear.weight.device).bool())
         loss_function = AMSLoss()
-        return (loss_function(embedding1, embedding2, one_direction=False),)
+        return (loss_function(embedding1, embedding2, one_direction=False), embedding1, embedding2)
 
     @torch.no_grad()
     def get_similarity(self, x1: dict, x2: dict):
@@ -154,7 +154,7 @@ class DualEncoderRoberta(nn.Module):
                                 attention_mask=x1["attention_mask"])[1]
         embedding2 = self.model(x2["input_ids"],
                                 attention_mask=x2["attention_mask"])[1]
-        return (loss_function(embedding1, embedding2, one_direction=False),)
+        return (loss_function(embedding1, embedding2, one_direction=False), embedding1, embedding2)
 
     @torch.no_grad()
     def get_similarity(self, x1: dict, x2: dict):
