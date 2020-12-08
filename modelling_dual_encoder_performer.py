@@ -177,7 +177,7 @@ if __name__ == "__main__":
     from fastai.optimizer import Lamb
 
     # tokenizer = RobertaTokenizerFast.from_pretrained(
-    #    "roberta-large" if not bool(int(os.environ.get("ROBERTA"))) else "distilroberta-base")
+    #    "roberta-large" if not bool(int(os.environ.get("ROBERTA"))) else "xlm-roberta-base")
     # model = DualEncoderPerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
 
 
