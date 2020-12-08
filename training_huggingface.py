@@ -11,7 +11,7 @@ from transformers.trainer import TrainingArguments
 from transformers.trainer_utils import EvaluationStrategy
 
 from lamb import Lamb
-from modelling_dual_encoder_performer import DualEncoderPerformer, DualEncoderRoberta
+from modelling_dual_encoder import DualEncoderPerformer, DualEncoder
 from preprocessing import download_and_extract, Corpus
 from utils import DataLoaderLaper, data_collector_huggingface, run_tensorboard, CustomTrainer
 
@@ -37,7 +37,7 @@ eval_dataset = DataLoaderLaper(
     corpus.get_eval() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_eval()[0:5000])
 print(f"Trainingdata amount {len(train_dataset)}")
 auto_encoder = DualEncoderPerformer(tokenizer.vocab_size) if not bool(
-    int(os.environ.get("ROBERTA", 1))) else DualEncoderRoberta()
+    int(os.environ.get("ROBERTA", 1))) else DualEncoder()
 
 training_args = TrainingArguments(
     output_dir="./results",  # output directory

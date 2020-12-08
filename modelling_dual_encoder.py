@@ -6,6 +6,8 @@ from torch import nn
 from torch.nn.modules.loss import _Loss
 from transformers import AutoModel, AutoTokenizer
 
+from lamb import Lamb
+
 
 class PerformerForDualEncoder(nn.Module):
     def __init__(self, num_tokens, max_seq_len, dim, depth, heads, local_attn_heads=0, local_window_size=256,
@@ -134,11 +136,14 @@ class DualEncoderPerformer(nn.Module):
         cls.load_state_dict(si["states"])
 
 
-class DualEncoderRoberta(nn.Module):
-    def __init__(self):
+class DualEncoder(nn.Module):
+    def __init__(self, pretrained=None):
         super().__init__()
-        self.model = AutoModel.from_pretrained(
-            os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER", "distilbert-base-multilingual-cased"))
+        if pretrained:
+            self.model = pretrained
+        else:
+            self.model = AutoModel.from_pretrained(
+                os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER", "distilbert-base-multilingual-cased"))
 
     def fix_projection_matrix(self):
         pass
@@ -164,18 +169,14 @@ class DualEncoderRoberta(nn.Module):
         return torch.nn.functional.cosine_similarity(x1_emb, x2_emb)
 
     def save_pretrained(self, path):
-        torch.save({"vocab_size": self.vocab_size,
-                    "states": self.state_dict()}, path)
+        self.model.save_pretrained(path)
 
     @staticmethod
     def from_pretrained(path):
-        si = torch.load(path)
-        cls = DualEncoderPerformer(si["vocab_size"])
-        cls.load_state_dict(si["states"])
-
+        cls = AutoModel.from_pretrained(path)
+        return DualEncoder(cls)
 
 if __name__ == "__main__":
-    from fastai.optimizer import Lamb
 
     # tokenizer = RobertaTokenizerFast.from_pretrained(
     #    "roberta-large" if not bool(int(os.environ.get("ROBERTA"))) else "xlm-roberta-base")
@@ -185,8 +186,10 @@ if __name__ == "__main__":
     # DeepPavlov/bert-base-multilingual-cased-sentence
     # bert-base-multilingual-cased
 
-    tokenizer = AutoTokenizer.from_pretrained("distilroberta-base")
-    model = DualEncoderPerformer(tokenizer.vocab_size)
+    tokenizer = AutoTokenizer.from_pretrained("distilbert-base-multilingual-cased")
+    model = DualEncoder()
+    model.save_pretrained("./results/test.bin")
+    model = DualEncoder.from_pretrained("./results/test.bin")
     optimizer = Lamb(model.parameters(), lr=0.001)  # Lamb
     sentence1_tensor = tokenizer(["Ich bin Andre", "Ich brauche hilfe", "Du magst tanzen?"],
                                  add_special_tokens=True, return_tensors="pt",

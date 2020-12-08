@@ -6,7 +6,7 @@ import deepspeed
 import torch
 from transformers import RobertaTokenizer, AutoTokenizer
 
-from modelling_dual_encoder_performer import DualEncoderPerformer
+from modelling_dual_encoder import DualEncoderPerformer
 from preprocessing import Corpus, download_and_extract
 from utils import DataLoaderLaper, add_argument, data_collector_deepspeed
 

@@ -7,18 +7,22 @@ pip install -r requirements.txt
 ```
 
 ### Usage (A pretrained model has not been released yet but will be in the future)
+
 ```python
 from transformers import AutoTokenizer
-from modelling_dual_encoder_performer import DualEncoderPerformer
+from modelling_dual_encoder import DualEncoderPerformer, DualEncoder
 
 tokenizer = AutoTokenizer.from_pretrained("roberta-large")
 model = DualEncoderPerformer(num_tokens=tokenizer.vocab_size)
+# with huggingface transformers
+# cls = AutoModel.from_pretrained("roberta-large")
+# model = DualEncoder(cls)
 sentences1 = tokenizer(["Ich bin Andre", "Ich bin Andre"],
-                      add_special_tokens=True, return_tensors="pt",
-                      padding=True)
+                       add_special_tokens=True, return_tensors="pt",
+                       padding=True)
 sentences2 = tokenizer(["I am Andre", "I need support"],
-                           add_special_tokens=True, return_tensors="pt",
-                           padding=True)
+                       add_special_tokens=True, return_tensors="pt",
+                       padding=True)
 print(model.get_similarity(sentences1, sentences2))
 ```
 This code should output something like the following:
