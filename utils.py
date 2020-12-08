@@ -1,12 +1,97 @@
 import argparse
+import collections
 import os
-from typing import List
+from typing import List, Optional, Dict, Union
 
 import deepspeed
+import torch
 from torch.utils.data import Dataset
-from transformers import AutoTokenizer, EvalPrediction
+from tqdm import tqdm
+from transformers import AutoTokenizer
+from transformers.trainer import Trainer, logger
 
 from preprocessing import SentencePair
+
+
+class CustomTrainer(Trainer):
+    def evaluate(self, eval_dataset: Optional[Dataset] = None) -> Dict[str, float]:
+        """
+        Run evaluation and returns metrics.
+
+        The calling script will be responsible for providing a method to compute metrics, as they are
+        task-dependent (pass it to the init :obj:`compute_metrics` argument).
+
+        You can also subclass and override this method to inject custom behavior.
+
+        Args:
+            eval_dataset (:obj:`Dataset`, `optional`):
+                Pass a dataset if you wish to override :obj:`self.eval_dataset`. If it is an :obj:`datasets.Dataset`,
+                columns not accepted by the ``model.forward()`` method are automatically removed. It must implement
+                the :obj:`__len__` method.
+
+        Returns:
+            class PredictionOutput(NamedTuple):
+                predictions: Union[np.ndarray, Tuple[np.ndarray]]
+                label_ids: Optional[np.ndarray]
+                metrics: Optional[Dict[str, float]]
+        """
+        if eval_dataset is not None and not isinstance(eval_dataset, collections.abc.Sized):
+            raise ValueError("eval_dataset must implement __len__")
+
+        model = self.model
+
+        if self.args.n_gpu > 1:
+            model = torch.nn.DataParallel(model)
+
+        eval_dataloader = self.get_eval_dataloader(eval_dataset)
+
+        batch_size = eval_dataloader.batch_size
+        print("***** Running %s *****", "Evaluation")
+
+        logger.info("***** Running %s *****", "Evaluation")
+        logger.info("  Batch size = %d", batch_size)
+
+        model.eval()
+
+        losses = list()
+        true_losses = list()
+        for step, inputs in enumerate(tqdm(eval_dataloader)):
+            with torch.no_grad():
+                inputs = self._prepare_inputs(inputs)
+                outputs = model(**inputs)
+                true_similarities = torch.nn.functional.cosine_similarity(outputs[1], outputs[2])
+                true_diff = torch.ones_like(true_similarities) - true_similarities
+                true_loss = torch.mean(true_diff).item()
+
+                N = outputs[1].size()[0]
+                neg = list()
+                for i in range(N):
+                    xxx = torch.zeros(N - 1).to(outputs[1].device)
+                    negative_samples_similarities_exp = [
+                        torch.nn.functional.cosine_similarity(outputs[1][i].unsqueeze(0), outputs[2][n].unsqueeze(0))
+                        for n in
+                        range(N) if n != i]
+                    for idx in range(N - 1):
+                        xxx[idx] = negative_samples_similarities_exp[idx]
+                    neg.append(torch.mean(xxx).item())
+                true_loss = sum(neg) / len(neg) + true_loss
+                losses.append(outputs[0].item())
+                true_losses.append(true_loss)
+
+        metrics = {
+            "true_loss": sum(true_losses) / len(true_losses),
+            "loss": sum(losses) / len(losses)
+        }
+
+        # Prefix all keys with eval_
+        for key in list(metrics.keys()):
+            if not key.startswith("eval_"):
+                metrics[f"eval_{key}"] = metrics.pop(key)
+
+        self.log(metrics)
+        print(metrics)
+
+        return metrics
 
 
 class DataLoaderLaper(Dataset):

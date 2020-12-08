@@ -179,6 +179,9 @@ if __name__ == "__main__":
     # tokenizer = RobertaTokenizerFast.from_pretrained(
     #    "roberta-large" if not bool(int(os.environ.get("ROBERTA"))) else "distilroberta-base")
     # model = DualEncoderPerformer(num_tokens=tokenizer.vocab_size, max_seq_len=512, dim=512, depth=6, heads=8)
+
+
+
     tokenizer = AutoTokenizer.from_pretrained("distilroberta-base")
     model = DualEncoderPerformer(tokenizer.vocab_size)
     optimizer = Lamb(model.parameters(), lr=0.001)  # Lamb

@@ -13,7 +13,7 @@ from transformers.trainer_utils import EvaluationStrategy
 from lamb import Lamb
 from modelling_dual_encoder_performer import DualEncoderPerformer, DualEncoderRoberta
 from preprocessing import download_and_extract, Corpus
-from utils import DataLoaderLaper, data_collector_huggingface, run_tensorboard
+from utils import DataLoaderLaper, data_collector_huggingface, run_tensorboard, CustomTrainer
 
 os.system("rm -r -f /tensorboard/*")
 x = threading.Thread(target=run_tensorboard)
@@ -30,7 +30,7 @@ corpus = Corpus()
 corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG", 1))), path=os.environ.get("DATA_DIR", "./storage"))
 
 train_dataset = DataLoaderLaper(
-    corpus.get_train() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train()[0:100])
+    corpus.get_train(shuffled=True) if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train(shuffled=True)[0:100])
 test_dataset = DataLoaderLaper(
     corpus.get_dev() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_dev()[0:100])
 print(f"Trainingdata amount {len(train_dataset)}")
@@ -48,13 +48,14 @@ training_args = TrainingArguments(
     logging_steps=int(os.environ.get("STEPS_PER_PRINT", 1)),  # number of warmup steps for learning rate scheduler
     weight_decay=0.01,  # strength of weight decay
     logging_dir='./tensorboard',  # directory for storing logs
-    evaluation_strategy=EvaluationStrategy.EPOCH,
+    evaluation_strategy=EvaluationStrategy.STEPS,
+    eval_steps=int(os.environ.get("STEPS_PER_SAVE", 1000000)),
     save_total_limit=5,
     prediction_loss_only=True,
     gradient_accumulation_steps=int(os.environ.get("GRADIENT_ACCUMULATION_STEPS", 1))
 )
 optimizer = Lamb(auto_encoder.parameters(), float(os.environ.get("LEARNING_RATE", 0.001)))
-trainer = Trainer(
+trainer = CustomTrainer(
     model=auto_encoder,  # the instantiated 🤗 Transformers model to be trained
     args=training_args,  # training arguments, defined above
     train_dataset=train_dataset,  # training dataset
