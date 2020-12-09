@@ -54,7 +54,8 @@ training_args = TrainingArguments(
     eval_steps=int(os.environ.get("STEPS_PER_SAVE", 12)),
     save_total_limit=5,
     prediction_loss_only=True,
-    gradient_accumulation_steps=int(os.environ.get("GRADIENT_ACCUMULATION_STEPS", 1))
+    gradient_accumulation_steps=int(os.environ.get("GRADIENT_ACCUMULATION_STEPS", 1)),
+    fp16=True
 )
 optimizer = Lamb(auto_encoder.parameters(), float(os.environ.get("LEARNING_RATE", 0.001)))
 trainer = CustomTrainer(
