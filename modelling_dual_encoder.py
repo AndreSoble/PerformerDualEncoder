@@ -6,7 +6,7 @@ from torch import nn
 from torch.nn.modules.loss import _Loss
 from transformers import AutoModel, AutoTokenizer
 
-from lamb import Lamb
+from lambelief import Lambelief
 
 
 class PerformerForDualEncoder(nn.Module):
@@ -79,6 +79,36 @@ class AMSLoss(_Loss):
             ret[i] = torch.div(m1, torch.add(m2, negative_samples_similarities_exp))
 
         return torch.mul(-1 / N, torch.sum(ret))
+
+    def forward(self, x: torch.FloatTensor, y: torch.FloatTensor, one_direction=False):
+        if not one_direction:
+            return torch.add(self.rank(x, y), self.rank(y, x))  # self.rank(x, y)#
+        else:
+            return self.rank(x, y)
+
+
+class Loss(_Loss):
+    def __init__(self):
+        super(Loss, self).__init__()
+
+    def rank(self, x: torch.FloatTensor, y: torch.FloatTensor):
+
+        true_similarities = torch.nn.functional.cosine_similarity(x, y)
+        true_diff = torch.sub(torch.ones_like(true_similarities),  true_similarities)
+        true_loss = torch.mean(true_diff).item()
+
+        N = x.size()[0]
+        neg = torch.zeros(N)
+        for i in range(N):
+            xxx = torch.zeros(N - 1).to(x.device)
+            negative_samples_similarities_exp = [
+                torch.nn.functional.cosine_similarity(x[i].unsqueeze(0), y[n].unsqueeze(0))
+                for n in
+                range(N) if n != i]
+            for idx in range(N - 1):
+                xxx[idx] = negative_samples_similarities_exp[idx]
+            neg[i] = torch.mean(xxx)
+        return torch.add(torch.mean(neg), true_loss) #sum(neg) / len(neg) + true_loss
 
     def forward(self, x: torch.FloatTensor, y: torch.FloatTensor, one_direction=False):
         if not one_direction:
@@ -176,6 +206,7 @@ class DualEncoder(nn.Module):
         cls = AutoModel.from_pretrained(path)
         return DualEncoder(cls)
 
+
 if __name__ == "__main__":
 
     # tokenizer = RobertaTokenizerFast.from_pretrained(
@@ -190,7 +221,7 @@ if __name__ == "__main__":
     model = DualEncoder()
     model.save_pretrained("./results/test.bin")
     model = DualEncoder.from_pretrained("./results/test.bin")
-    optimizer = Lamb(model.parameters(), lr=0.001)  # Lamb
+    optimizer = Lambelief(model.parameters(), lr=0.001)  # Lamb
     sentence1_tensor = tokenizer(["Ich bin Andre", "Ich brauche hilfe", "Du magst tanzen?"],
                                  add_special_tokens=True, return_tensors="pt",
                                  padding=True)

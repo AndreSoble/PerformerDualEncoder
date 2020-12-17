@@ -10,7 +10,7 @@ from transformers.trainer import Trainer
 from transformers.trainer import TrainingArguments
 from transformers.trainer_utils import EvaluationStrategy
 
-from lamb import Lamb
+from lambelief import Lambelief, Lamb
 from modelling_dual_encoder import DualEncoderPerformer, DualEncoder
 from preprocessing import download_and_extract, Corpus
 from utils import DataLoaderLaper, data_collector_huggingface, run_tensorboard, CustomTrainer
@@ -30,18 +30,18 @@ corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG", 1))), path=os.environ.
 
 train_dataset = DataLoaderLaper(
     corpus.get_train(shuffled=True) if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train(
-        shuffled=True)[0:5000])
+        shuffled=True)[0:50])
 test_dataset = DataLoaderLaper(
-    corpus.get_dev() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_dev()[0:5000])
+    corpus.get_dev() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train()[0:25])
 eval_dataset = DataLoaderLaper(
-    corpus.get_eval() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_eval()[0:5000])
+    corpus.get_eval() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train()[0:50])
 print(f"Trainingdata amount {len(train_dataset)}")
 auto_encoder = DualEncoderPerformer(tokenizer.vocab_size) if not bool(
     int(os.environ.get("ROBERTA", 1))) else DualEncoder()
 
 training_args = TrainingArguments(
     output_dir="./results",  # output directory
-    num_train_epochs=int(os.environ.get("EPOCHS", 3)),  # total # of training epochs
+    num_train_epochs=int(os.environ.get("EPOCHS", 5)),  # total # of training epochs
     per_device_train_batch_size=int(os.environ.get("BATCH_SIZE_PER_GPU", 5)),
     # batch size per device during training
     per_device_eval_batch_size=int(os.environ.get("BATCH_SIZE_PER_GPU", 5)),  # batch size for evaluation
@@ -56,7 +56,7 @@ training_args = TrainingArguments(
     prediction_loss_only=True,
     gradient_accumulation_steps=int(os.environ.get("GRADIENT_ACCUMULATION_STEPS", 1))
 )
-optimizer = Lamb(auto_encoder.parameters(), float(os.environ.get("LEARNING_RATE", 0.001)))
+optimizer = Lambelief(auto_encoder.parameters(), float(os.environ.get("LEARNING_RATE", 0.01)))
 trainer = CustomTrainer(
     model=auto_encoder,  # the instantiated 🤗 Transformers model to be trained
     args=training_args,  # training arguments, defined above

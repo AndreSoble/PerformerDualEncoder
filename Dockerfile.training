@@ -7,7 +7,7 @@ ADD ./setup.py /workspace/setup.py
 ADD ./training.py /workspace/training.py
 ADD ./evaluation.py /workspace/evaluation.py
 ADD ./training_huggingface.py /workspace/training_huggingface.py
-ADD ./lamb.py /workspace/lamb.py
+ADD lambelief.py /workspace/lambelief.py
 ADD ./run.sh /workspace/run.sh
 WORKDIR /
 EXPOSE 6006
