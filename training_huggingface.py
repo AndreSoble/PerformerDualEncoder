@@ -22,7 +22,8 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 warnings.simplefilter("ignore", UserWarning)
 
-tokenizer = AutoTokenizer.from_pretrained(os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER", "distilbert-base-multilingual-cased"))
+tokenizer = AutoTokenizer.from_pretrained(
+    os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER", "distilbert-base-multilingual-cased"))
 
 assert download_and_extract(path=os.environ.get("DATA_DIR", "./storage"))
 corpus = Corpus()
@@ -54,9 +55,10 @@ training_args = TrainingArguments(
     eval_steps=int(os.environ.get("STEPS_PER_SAVE", 12)),
     save_total_limit=5,
     prediction_loss_only=True,
-    gradient_accumulation_steps=int(os.environ.get("GRADIENT_ACCUMULATION_STEPS", 1))
+    gradient_accumulation_steps=int(os.environ.get("GRADIENT_ACCUMULATION_STEPS", 1)),
+    max_grad_norm=0.5
 )
-optimizer = Lambelief(auto_encoder.parameters(), float(os.environ.get("LEARNING_RATE", 0.01)))
+optimizer = Lambelief(auto_encoder.parameters(), float(os.environ.get("LEARNING_RATE", 0.01)), weight_decay=0.1)
 trainer = CustomTrainer(
     model=auto_encoder,  # the instantiated 🤗 Transformers model to be trained
     args=training_args,  # training arguments, defined above
