@@ -31,7 +31,7 @@ corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG", 1))), path=os.environ.
 
 train_dataset = DataLoaderLaper(
     corpus.get_train(shuffled=True) if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train(
-        shuffled=True)[0:50])
+        shuffled=False)[0:50])
 test_dataset = DataLoaderLaper(
     corpus.get_dev() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train()[0:25])
 eval_dataset = DataLoaderLaper(
@@ -42,7 +42,7 @@ auto_encoder = DualEncoderPerformer(tokenizer.vocab_size) if not bool(
 
 training_args = TrainingArguments(
     output_dir="./results",  # output directory
-    num_train_epochs=int(os.environ.get("EPOCHS", 5)),  # total # of training epochs
+    num_train_epochs=int(os.environ.get("EPOCHS", 10)),  # total # of training epochs
     per_device_train_batch_size=int(os.environ.get("BATCH_SIZE_PER_GPU", 5)),
     # batch size per device during training
     per_device_eval_batch_size=int(os.environ.get("BATCH_SIZE_PER_GPU", 5)),  # batch size for evaluation
@@ -52,13 +52,13 @@ training_args = TrainingArguments(
     weight_decay=0.01,  # strength of weight decay
     logging_dir='./tensorboard',  # directory for storing logs
     evaluation_strategy=EvaluationStrategy.STEPS,
-    eval_steps=int(os.environ.get("STEPS_PER_SAVE", 12)),
+    eval_steps=int(os.environ.get("STEPS_PER_SAVE", int(50/5))),
     save_total_limit=5,
     prediction_loss_only=True,
     gradient_accumulation_steps=int(os.environ.get("GRADIENT_ACCUMULATION_STEPS", 1)),
     max_grad_norm=0.5
 )
-optimizer = Lambelief(auto_encoder.parameters(), float(os.environ.get("LEARNING_RATE", 0.01)), weight_decay=0.1)
+optimizer = Lambelief(auto_encoder.parameters(), float(os.environ.get("LEARNING_RATE", 0.01)))
 trainer = CustomTrainer(
     model=auto_encoder,  # the instantiated 🤗 Transformers model to be trained
     args=training_args,  # training arguments, defined above

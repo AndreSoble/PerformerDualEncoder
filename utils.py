@@ -73,7 +73,6 @@ class CustomTrainer(Trainer):
                         range(N) if n != i]
                     for idx in range(N - 1):
                         xxx[idx] = negative_samples_similarities_exp[idx]
-                    xxx = torch.nn.functional.relu(xxx)
                     neg.append(torch.mean(xxx).item())
                 true_loss1 = sum(neg) / len(neg) + true_loss
                 losses.append(outputs[0].mean().item())
