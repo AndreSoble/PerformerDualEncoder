@@ -28,7 +28,7 @@ tokenizer = AutoTokenizer.from_pretrained(
 assert download_and_extract(path=os.environ.get("DATA_DIR", "./storage")) # Could not download and extract training data
 corpus = Corpus(downsampled=bool(int(os.environ.get("DOWNSAMPLE", 1))),
                 downsampled_count=int(os.environ.get("DOWNSAMPLE_COUNT", 1000)))
-corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG", 1))), path=os.environ.get("DATA_DIR", "./storage"))
+corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG", 0))), path=os.environ.get("DATA_DIR", "./storage"))
 
 train_dataset = DataLoaderLaper(corpus.get_train(shuffled=True))
 test_dataset = DataLoaderLaper(corpus.get_dev())

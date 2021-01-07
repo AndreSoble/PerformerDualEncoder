@@ -106,7 +106,7 @@ class Corpus:
         return src, tgt
 
     def add_2_corpus(self, iterable, mode=""):
-        iterable = iterable if not self.downsampled else iterable[0:self.downsampled_count]
+        iterable = list(iterable) if not self.downsampled else list(iterable)[0:self.downsampled_count]
         for s1, s2 in iterable:
             if len(s1) < 2 or len(s2) < 2:
                 continue
