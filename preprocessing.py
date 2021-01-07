@@ -93,7 +93,7 @@ class Corpus:
                 continue
             if len(s1.split(" ")) < 2 or len(s2.split(" ")) < 2:
                 continue
-            if len(s1.split(" ")) > 300 or len(s2.split(" ")) > 300:
+            if len(s1.split(" ")) > 128 or len(s2.split(" ")) > 128:
                 continue
             if mode == "dev":
                 self.dev.append(SentencePair(s1.replace("\n", ""), s2.replace("\n", "")))
