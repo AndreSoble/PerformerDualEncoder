@@ -6,7 +6,6 @@ from torch import nn
 from torch.nn.modules.loss import _Loss
 from transformers import AutoModel, AutoTokenizer
 
-from lambelief import Lambelief
 
 
 class PerformerForDualEncoder(nn.Module):

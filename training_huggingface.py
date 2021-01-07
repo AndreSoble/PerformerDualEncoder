@@ -10,7 +10,7 @@ from transformers.trainer import Trainer
 from transformers.trainer import TrainingArguments
 from transformers.trainer_utils import EvaluationStrategy
 
-from lambelief import Lambelief, Lamb
+from lamb import  Lamb
 from modelling_dual_encoder import DualEncoderPerformer, DualEncoder
 from preprocessing import download_and_extract, Corpus
 from utils import DataLoaderLaper, data_collector_huggingface, run_tensorboard, CustomTrainer
@@ -58,7 +58,7 @@ training_args = TrainingArguments(
     gradient_accumulation_steps=int(os.environ.get("GRADIENT_ACCUMULATION_STEPS", 1)),
     max_grad_norm=0.5
 )
-optimizer = Lambelief(auto_encoder.parameters(), float(os.environ.get("LEARNING_RATE", 0.01)))
+optimizer = Lamb(auto_encoder.parameters(), float(os.environ.get("LEARNING_RATE",  5e-3)))
 trainer = CustomTrainer(
     model=auto_encoder,  # the instantiated 🤗 Transformers model to be trained
     args=training_args,  # training arguments, defined above
