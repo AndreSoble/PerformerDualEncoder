@@ -10,6 +10,7 @@ from random import shuffle
 import requests
 from tqdm import tqdm
 
+
 def download_data(url="https://object.pouta.csc.fi/OPUS-100/v1.0/opus-100-corpus-v1.0.tar.gz",
                   path="./storage"):
     if os.path.isfile(path + "/" + 'opus-100-corpus-v1.0.tar.gz'):
@@ -26,8 +27,10 @@ def download_data(url="https://object.pouta.csc.fi/OPUS-100/v1.0/opus-100-corpus
                 progress_bar.update(len(data))
                 file.write(data)
         progress_bar.close()
-        assert (total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes) # Smth went wrong during the download
+        assert (
+                    total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes)  # Smth went wrong during the download
         return True
+
 
 def extract_data(url="https://object.pouta.csc.fi/OPUS-100/v1.0/opus-100-corpus-v1.0.tar.gz",
                  path="./storage"):
@@ -38,6 +41,7 @@ def extract_data(url="https://object.pouta.csc.fi/OPUS-100/v1.0/opus-100-corpus-
     tf = tarfile.open(path + "/" + "opus-100-corpus-v1.0.tar")
     tf.extractall(path)
     return True
+
 
 def download_and_extract(url="https://object.pouta.csc.fi/OPUS-100/v1.0/opus-100-corpus-v1.0.tar.gz",
                          path="./storage"):
