@@ -10,15 +10,12 @@ from random import shuffle
 import requests
 from tqdm import tqdm
 
-
-def download_and_extract(url="https://object.pouta.csc.fi/OPUS-100/v1.0/opus-100-corpus-v1.0.tar.gz",
-                         path="./storage"):
-    if not os.path.isdir(path):
-        os.mkdir(path)
-    if os.path.isdir(path + "/opus-100-corpus/v1.0"):
-        print("Already downloaded the data")
+def download_data(url="https://object.pouta.csc.fi/OPUS-100/v1.0/opus-100-corpus-v1.0.tar.gz",
+                  path="./storage"):
+    if os.path.isfile(path + "/" + 'opus-100-corpus-v1.0.tar.gz'):
+        print("Already downloaded opus-100-corpus-v1.0.tar.gz ")
         return True
-    try:
+    else:
         print("Downloading data...")
         response = requests.get(url, stream=True)
         total_size_in_bytes = int(response.headers.get('content-length', 0))
@@ -29,16 +26,31 @@ def download_and_extract(url="https://object.pouta.csc.fi/OPUS-100/v1.0/opus-100
                 progress_bar.update(len(data))
                 file.write(data)
         progress_bar.close()
-        if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
-            print("ERROR, something went wrong")
-        # open('opus-100-corpus-v1.0.tar.gz', 'wb').write(response.content)
-        print("Extracting...")
-        with gzip.open(path + "/" + 'opus-100-corpus-v1.0.tar.gz', 'rb') as f_in:
-            with open(path + "/" + 'opus-100-corpus-v1.0.tar', 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
-        tf = tarfile.open(path + "/" + "opus-100-corpus-v1.0.tar")
-        tf.extractall(path)
+        assert (total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes) # Smth went wrong during the download
         return True
+
+def extract_data(url="https://object.pouta.csc.fi/OPUS-100/v1.0/opus-100-corpus-v1.0.tar.gz",
+                 path="./storage"):
+    print("Extracting...")
+    with gzip.open(path + "/" + 'opus-100-corpus-v1.0.tar.gz', 'rb') as f_in:
+        with open(path + "/" + 'opus-100-corpus-v1.0.tar', 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    tf = tarfile.open(path + "/" + "opus-100-corpus-v1.0.tar")
+    tf.extractall(path)
+    return True
+
+def download_and_extract(url="https://object.pouta.csc.fi/OPUS-100/v1.0/opus-100-corpus-v1.0.tar.gz",
+                         path="./storage"):
+    if not os.path.isdir(path):
+        os.mkdir(path)
+    if os.path.isdir(path + "/opus-100-corpus/v1.0"):
+        print("Already downloaded and extracted the data")
+        return True
+    try:
+        assert download_data(url=url,
+                             path=path)
+        assert extract_data(url=url,
+                            path=path)
     except Exception:
         traceback.print_exc()
         return False

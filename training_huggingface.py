@@ -25,7 +25,7 @@ warnings.simplefilter("ignore", UserWarning)
 tokenizer = AutoTokenizer.from_pretrained(
     os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER", "distilbert-base-multilingual-cased"))
 
-assert download_and_extract(path=os.environ.get("DATA_DIR", "./storage"))
+assert download_and_extract(path=os.environ.get("DATA_DIR", "./storage")) # Could not download and extract training data
 corpus = Corpus(downsampled=bool(int(os.environ.get("DOWNSAMPLE", 1))),
                 downsampled_count=int(os.environ.get("DOWNSAMPLE_COUNT", 1000)))
 corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG", 1))), path=os.environ.get("DATA_DIR", "./storage"))
