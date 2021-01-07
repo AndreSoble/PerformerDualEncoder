@@ -60,11 +60,13 @@ class SentencePair:
 
 
 class Corpus:
-    def __init__(self):
+    def __init__(self, downsampled=False, downsampled_count=1000):
         self.dev = list()
         self.eval = list()
         self.train = list()
         self.pbar = None
+        self.downsampled = downsampled
+        self.downsampled_count = downsampled_count
 
     def get_eval(self):
         return self.eval
@@ -88,6 +90,7 @@ class Corpus:
         return src, tgt
 
     def add_2_corpus(self, iterable, mode=""):
+        iterable = iterable if not self.downsampled else iterable[0:self.downsampled_count]
         for s1, s2 in iterable:
             if len(s1) < 2 or len(s2) < 2:
                 continue
@@ -103,6 +106,7 @@ class Corpus:
                 self.eval.append(SentencePair(s1.replace("\n", ""), s2.replace("\n", "")))
 
     def load_parallel(self, lang_folder_path):
+        # Load all parallel sentences from the path
         # lang_folder_path = data_folder_path + "/" + lang_folder
         dev_files_paths = list()
         test_files_paths = list()
@@ -145,7 +149,7 @@ class Corpus:
         self.pbar.update(1)
 
     def load_corpus(self, path="./storage", debug=False):
-        assert os.path.isdir(path + "/opus-100-corpus/v1.0/supervised")
+        assert os.path.isdir(path + "/opus-100-corpus/v1.0/supervised")  # data not found
         data_folder_path = path + "/opus-100-corpus/v1.0/supervised"
         print("Loading corpus...")
         print("")

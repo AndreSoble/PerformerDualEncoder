@@ -10,7 +10,7 @@ from transformers.trainer import Trainer
 from transformers.trainer import TrainingArguments
 from transformers.trainer_utils import EvaluationStrategy
 
-from lamb import  Lamb
+from lamb import Lamb
 from modelling_dual_encoder import DualEncoderPerformer, DualEncoder
 from preprocessing import download_and_extract, Corpus
 from utils import DataLoaderLaper, data_collector_huggingface, run_tensorboard, CustomTrainer
@@ -26,16 +26,13 @@ tokenizer = AutoTokenizer.from_pretrained(
     os.environ.get("PRETRAINED_MODEL_AND_TOKENIZER", "distilbert-base-multilingual-cased"))
 
 assert download_and_extract(path=os.environ.get("DATA_DIR", "./storage"))
-corpus = Corpus()
+corpus = Corpus(downsampled=bool(int(os.environ.get("DOWNSAMPLE", 1))),
+                downsampled_count=int(os.environ.get("DOWNSAMPLE_COUNT", 1000)))
 corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG", 1))), path=os.environ.get("DATA_DIR", "./storage"))
 
-train_dataset = DataLoaderLaper(
-    corpus.get_train(shuffled=True) if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train(
-        shuffled=False)[0:50])
-test_dataset = DataLoaderLaper(
-    corpus.get_dev() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train()[0:25])
-eval_dataset = DataLoaderLaper(
-    corpus.get_eval() if not bool(int(os.environ.get("DOWNSAMPLE", 1))) else corpus.get_train()[0:50])
+train_dataset = DataLoaderLaper(corpus.get_train(shuffled=True))
+test_dataset = DataLoaderLaper(corpus.get_dev())
+eval_dataset = DataLoaderLaper(corpus.get_eval())
 print(f"Trainingdata amount {len(train_dataset)}")
 auto_encoder = DualEncoderPerformer(tokenizer.vocab_size) if not bool(
     int(os.environ.get("ROBERTA", 1))) else DualEncoder()
@@ -52,13 +49,13 @@ training_args = TrainingArguments(
     weight_decay=0.01,  # strength of weight decay
     logging_dir='./tensorboard',  # directory for storing logs
     evaluation_strategy=EvaluationStrategy.STEPS,
-    eval_steps=int(os.environ.get("STEPS_PER_SAVE", int(50/5))),
+    eval_steps=int(os.environ.get("STEPS_PER_SAVE", int(50 / 5))),
     save_total_limit=5,
     prediction_loss_only=True,
     gradient_accumulation_steps=int(os.environ.get("GRADIENT_ACCUMULATION_STEPS", 1)),
     max_grad_norm=0.5
 )
-optimizer = Lamb(auto_encoder.parameters(), float(os.environ.get("LEARNING_RATE",  5e-3)))
+optimizer = Lamb(auto_encoder.parameters(), float(os.environ.get("LEARNING_RATE", 5e-3)))
 trainer = CustomTrainer(
     model=auto_encoder,  # the instantiated 🤗 Transformers model to be trained
     args=training_args,  # training arguments, defined above
