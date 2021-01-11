@@ -1,6 +1,7 @@
 import argparse
 import collections
 import os
+import traceback
 from typing import List, Optional, Dict, Union
 
 import deepspeed
@@ -56,27 +57,30 @@ class CustomTrainer(Trainer):
         losses = list()
         true_losses = list()
         for step, inputs in enumerate(tqdm(eval_dataloader)):
-            with torch.no_grad():
-                inputs = self._prepare_inputs(inputs)
-                outputs = model(**inputs)
-                true_similarities = torch.nn.functional.cosine_similarity(outputs[1], outputs[2])
-                true_diff = torch.ones_like(true_similarities) - true_similarities
-                true_loss = torch.mean(true_diff).item()
+            try:
+                with torch.no_grad():
+                    inputs = self._prepare_inputs(inputs)
+                    outputs = model(**inputs)
+                    true_similarities = torch.nn.functional.cosine_similarity(outputs[1], outputs[2])
+                    true_diff = torch.ones_like(true_similarities) - true_similarities
+                    true_loss = torch.mean(true_diff).item()
 
-                N = outputs[1].size()[0]
-                neg = list()
-                for i in range(N):
-                    xxx = torch.zeros(N - 1).to(outputs[1].device)
-                    negative_samples_similarities_exp = [
-                        torch.nn.functional.cosine_similarity(outputs[1][i].unsqueeze(0), outputs[2][n].unsqueeze(0))
-                        for n in
-                        range(N) if n != i]
-                    for idx in range(N - 1):
-                        xxx[idx] = negative_samples_similarities_exp[idx]
-                    neg.append(torch.mean(xxx).item())
-                true_loss1 = sum(neg) / len(neg) + true_loss
-                losses.append(outputs[0].mean().item())
-                true_losses.append(true_loss1)
+                    N = outputs[1].size()[0]
+                    neg = list()
+                    for i in range(N):
+                        xxx = torch.zeros(N - 1).to(outputs[1].device)
+                        negative_samples_similarities_exp = [
+                            torch.nn.functional.cosine_similarity(outputs[1][i].unsqueeze(0), outputs[2][n].unsqueeze(0))
+                            for n in
+                            range(N) if n != i]
+                        for idx in range(N - 1):
+                            xxx[idx] = negative_samples_similarities_exp[idx]
+                        neg.append(torch.mean(xxx).item())
+                    true_loss1 = sum(neg) / len(neg) + true_loss
+                    losses.append(outputs[0].mean().item())
+                    true_losses.append(true_loss1)
+            except Exception:
+                print(traceback.print_exc())
 
         metrics = {
             "understandable_loss": sum(true_losses) / len(true_losses),
