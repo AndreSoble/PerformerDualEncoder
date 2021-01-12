@@ -99,13 +99,17 @@ class CustomTrainer(Trainer):
 
 
 class DataLoaderLaper(Dataset):
-    def __init__(self, sentence_list: List[SentencePair]):
+    def __init__(self, sentence_list: List[SentencePair], shuffle_every_epoch = False):
         self.items = sentence_list
+        self.shuffle_every_epoch = shuffle_every_epoch
 
     def __len__(self):
         return len(self.items)
 
     def __getitem__(self, idx):
+        if idx == 0 and self.shuffle_every_epoch:
+            shuffle(self.items)
+
         return {
             "source": self.items[idx].get_source(),
             "target": self.items[idx].get_target()

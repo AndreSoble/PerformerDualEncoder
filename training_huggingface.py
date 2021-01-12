@@ -30,7 +30,7 @@ corpus = Corpus(downsampled=bool(int(os.environ.get("DOWNSAMPLE", 1))),
                 downsampled_count=int(os.environ.get("DOWNSAMPLE_COUNT", 1000)))
 corpus.load_corpus(debug=bool(int(os.environ.get("DEBUG", 0))), path=os.environ.get("DATA_DIR", "./storage"))
 
-train_dataset = DataLoaderLaper(corpus.get_train(shuffled=True))
+train_dataset = DataLoaderLaper(corpus.get_train(shuffled=True), shuffle_every_epoch=True)
 test_dataset = DataLoaderLaper(corpus.get_dev())
 eval_dataset = DataLoaderLaper(corpus.get_eval())
 print(f"Trainingdata amount {len(train_dataset)}")
