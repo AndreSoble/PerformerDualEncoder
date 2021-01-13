@@ -1,5 +1,6 @@
-torch
+torch==1.7.0
 transformers==4.1.1
+sentencepiece==0.1.91
 tensorboard>=1.15.0
 tdqm
 nltk

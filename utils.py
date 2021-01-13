@@ -68,6 +68,7 @@ class CustomTrainer(Trainer):
                     print("2.1")
                     inputs = self._prepare_inputs(inputs)
                     print("2.2")
+                    # todo 7 Segmentation fault      (core dumped) python /workspace/training_huggingface.py an diesen Punkt
                     outputs = model(**inputs)
                     print("2.3")
                     true_similarities = torch.nn.functional.cosine_similarity(outputs[1], outputs[2])
