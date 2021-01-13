@@ -6,6 +6,7 @@ from torch import nn
 from torch.nn.modules.loss import _Loss
 from transformers import AutoModel, AutoTokenizer
 
+from lamb import Lamb
 
 
 class PerformerForDualEncoder(nn.Module):
@@ -220,7 +221,7 @@ if __name__ == "__main__":
     model = DualEncoder()
     model.save_pretrained("./results/test.bin")
     model = DualEncoder.from_pretrained("./results/test.bin")
-    optimizer = Lambelief(model.parameters(), lr=0.001)  # Lamb
+    optimizer = Lamb(model.parameters(), lr=0.001)  # Lamb
     sentence1_tensor = tokenizer(["Ich bin Andre", "Ich brauche hilfe", "Du magst tanzen?"],
                                  add_special_tokens=True, return_tensors="pt",
                                  padding=True)

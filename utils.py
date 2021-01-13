@@ -3,7 +3,7 @@ import collections
 import os
 import traceback
 from random import shuffle
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Dict, Union, Any
 
 import deepspeed
 import torch
@@ -11,11 +11,18 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import AutoTokenizer
 from transformers.trainer import Trainer, logger
+from transformers.trainer_utils import HPSearchBackend
 
 from preprocessing import SentencePair
 
 
 class CustomTrainer(Trainer):
+
+    def _report_to_hp_search(
+            self, trial: Union["optuna.Trial", Dict[str, Any]], epoch: int, metrics: Dict[str, float]
+    ):
+        pass
+
     def evaluate(self, eval_dataset: Optional[Dataset] = None) -> Dict[str, float]:
         """
         Run evaluation and returns metrics.
@@ -37,8 +44,6 @@ class CustomTrainer(Trainer):
                 label_ids: Optional[np.ndarray]
                 metrics: Optional[Dict[str, float]]
         """
-        if eval_dataset is not None and not isinstance(eval_dataset, collections.abc.Sized):
-            raise ValueError("eval_dataset must implement __len__")
 
         model = self.model
 
@@ -52,20 +57,21 @@ class CustomTrainer(Trainer):
 
         logger.info("***** Running %s *****", "Evaluation")
         logger.info("  Batch size = %d", batch_size)
-
+        print("1")
         model.eval()
 
         losses = list()
         true_losses = list()
         for step, inputs in enumerate(tqdm(eval_dataloader)):
             try:
+                print("2")
                 with torch.no_grad():
                     inputs = self._prepare_inputs(inputs)
                     outputs = model(**inputs)
                     true_similarities = torch.nn.functional.cosine_similarity(outputs[1], outputs[2])
                     true_diff = torch.ones_like(true_similarities) - true_similarities
                     true_loss = torch.mean(true_diff).item()
-
+                    print("3")
                     N = outputs[1].size()[0]
                     neg = list()
                     for i in range(N):
@@ -78,21 +84,26 @@ class CustomTrainer(Trainer):
                         for idx in range(N - 1):
                             xxx[idx] = negative_samples_similarities_exp[idx]
                         neg.append(torch.mean(xxx).item())
+                    print("4")
                     true_loss1 = sum(neg) / len(neg) + true_loss
                     losses.append(outputs[0].mean().item())
                     true_losses.append(true_loss1)
             except Exception:
+                print("5")
                 print(traceback.print_exc())
-
+        print("6")
         metrics = {
             "understandable_loss": sum(true_losses) / len(true_losses),
             "loss": sum(losses) / len(losses)
         }
+        print("7")
         # Prefix all keys with eval_
         for key in list(metrics.keys()):
             if not key.startswith("eval_"):
                 metrics[f"eval_{key}"] = metrics.pop(key)
+        print("8")
         self.log(metrics)
+        print("9")
         return metrics
 
 
