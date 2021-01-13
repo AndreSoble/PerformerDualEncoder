@@ -11,7 +11,6 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import AutoTokenizer
 from transformers.trainer import Trainer, logger
-from transformers.trainer_utils import HPSearchBackend
 
 from preprocessing import SentencePair
 
@@ -62,14 +61,19 @@ class CustomTrainer(Trainer):
 
         losses = list()
         true_losses = list()
-        for step, inputs in enumerate(eval_dataloader):
+        for step, inputs in enumerate(tqdm(eval_dataloader)):
             try:
                 print("2")
                 with torch.no_grad():
+                    print("2.1")
                     inputs = self._prepare_inputs(inputs)
+                    print("2.2")
                     outputs = model(**inputs)
+                    print("2.3")
                     true_similarities = torch.nn.functional.cosine_similarity(outputs[1], outputs[2])
+                    print("2.4")
                     true_diff = torch.ones_like(true_similarities) - true_similarities
+                    print("2.5")
                     true_loss = torch.mean(true_diff).item()
                     print("3")
                     N = outputs[1].size()[0]
