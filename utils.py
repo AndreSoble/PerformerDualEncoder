@@ -62,7 +62,7 @@ class CustomTrainer(Trainer):
 
         losses = list()
         true_losses = list()
-        for step, inputs in enumerate(tqdm(eval_dataloader)):
+        for step, inputs in enumerate(eval_dataloader):
             try:
                 print("2")
                 with torch.no_grad():
