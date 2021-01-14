@@ -67,7 +67,7 @@ class CustomTrainer(Trainer):
                 with torch.no_grad():
                     print("2.1")
                     inputs = self._prepare_inputs(inputs)
-                    print("2.2")
+                    print("2.2", inputs)
                     # todo 7 Segmentation fault      (core dumped) python /workspace/training_huggingface.py an diesen Punkt
                     outputs = model(**inputs)
                     print("2.3")
