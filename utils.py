@@ -56,28 +56,18 @@ class CustomTrainer(Trainer):
 
         logger.info("***** Running %s *****", "Evaluation")
         logger.info("  Batch size = %d", batch_size)
-        print("1")
         model.eval()
 
         losses = list()
         true_losses = list()
         for step, inputs in enumerate(tqdm(eval_dataloader)):
             try:
-                print("2")
                 with torch.no_grad():
-                    print("2.1",inputs)
                     inputs = self._prepare_inputs(inputs)
-                    print("2.2", inputs["x1"]["input_ids"].size(), inputs["x1"]["attention_mask"].size(),
-                          inputs["x2"]["input_ids"].size(), inputs["x2"]["attention_mask"].size())
-                    # todo 7 Segmentation fault      (core dumped) python /workspace/training_huggingface.py an diesen Punkt
                     outputs = model(**inputs)
-                    print("2.3")
                     true_similarities = torch.nn.functional.cosine_similarity(outputs[1], outputs[2])
-                    print("2.4")
                     true_diff = torch.ones_like(true_similarities) - true_similarities
-                    print("2.5")
                     true_loss = torch.mean(true_diff).item()
-                    print("3")
                     N = outputs[1].size()[0]
                     neg = list()
                     for i in range(N):
@@ -90,26 +80,20 @@ class CustomTrainer(Trainer):
                         for idx in range(N - 1):
                             xxx[idx] = negative_samples_similarities_exp[idx]
                         neg.append(torch.mean(xxx).item())
-                    print("4")
                     true_loss1 = sum(neg) / len(neg) + true_loss
                     losses.append(outputs[0].mean().item())
                     true_losses.append(true_loss1)
             except Exception:
-                print("5")
                 print(traceback.print_exc())
-        print("6")
         metrics = {
             "understandable_loss": sum(true_losses) / len(true_losses),
             "loss": sum(losses) / len(losses)
         }
-        print("7")
         # Prefix all keys with eval_
         for key in list(metrics.keys()):
             if not key.startswith("eval_"):
                 metrics[f"eval_{key}"] = metrics.pop(key)
-        print("8")
         self.log(metrics)
-        print("9")
         return metrics
 
 

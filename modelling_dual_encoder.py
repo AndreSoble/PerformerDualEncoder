@@ -185,15 +185,11 @@ class DualEncoder(nn.Module):
         return self.model(x, attention_mask=mask)[0][:, 0, :]
 
     def forward(self, x1: dict, x2: dict):
-        print("2.2.1")
         loss_function = AMSLoss()
-        print("2.2.2")
         embedding1 = self.model(x1["input_ids"],
                                 attention_mask=x1["attention_mask"])[0][:, 0, :]
-        print("2.2.3")
         embedding2 = self.model(x2["input_ids"],
                                 attention_mask=x2["attention_mask"])[0][:, 0, :]
-        print("2.2.4")
         return (loss_function(embedding1, embedding2, one_direction=False), embedding1, embedding2)
 
     @torch.no_grad()
